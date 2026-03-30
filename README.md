@@ -46,6 +46,6 @@ The UI is a pure client — it never touches the database directly. All data ope
 
 All UI design documents are in the `/design` folder:
 
-- `personas_storyboards.docx` — User personas (MVP + stretch), storyboards for all interaction flows
+- `personas_storyboards.pdf` — User personas (MVP + stretch), storyboards for all interaction flows
 - `styleguide.html` — Color palette, typography, spacing, components — open in any browser
-- `wireframes/` — Annotated wireframes for all MVP pages
+- `wireframes.pdf` — Annotated wireframes for all MVP pages
