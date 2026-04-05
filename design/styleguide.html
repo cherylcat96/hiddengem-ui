@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HiddenGem — Style Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  /* ─────────────────────────────────────────────
+     CSS CUSTOM PROPERTIES (Design Tokens)
+  ───────────────────────────────────────────── */
+  :root {
+    /* Brand greens */
+    --green-50:   #E8F5F0;
+    --green-100:  #B7E4C7;
+    --green-400:  #1A9E6E;
+    --green-500:  #0D7A54;
+    --green-600:  #0A6344;
+    --green-900:  #052e1e;
+
+    /* Neutrals */
+    --gray-50:   #F9FAFB;
+    --gray-100:  #F3F4F6;
+    --gray-200:  #E5E7EB;
+    --gray-300:  #D1D5DB;
+    --gray-400:  #9CA3AF;
+    --gray-500:  #6B7280;
+    --gray-700:  #374151;
+    --gray-900:  #111827;
+
+    /* Semantic tags */
+    --tag-nature-bg:   #D1FAE5;
+    --tag-nature-fg:   #065F46;
+    --tag-art-bg:      #DBEAFE;
+    --tag-art-fg:      #1E40AF;
+    --tag-historic-bg: #EDE9FE;
+    --tag-historic-fg: #5B21B6;
+    --tag-food-bg:     #FEF3C7;
+    --tag-food-fg:     #92400E;
+
+    /* Stretch feature accent */
+    --purple-50:  #EEEDFE;
+    --purple-400: #7F77DD;
+    --purple-600: #534AB7;
+
+    /* Danger */
+    --red-500: #EF4444;
+    --red-600: #DC2626;
+
+    /* Fonts */
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body:    'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:    'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+    /* Radii */
+    --radius-sm:   4px;
+    --radius-md:   8px;
+    --radius-lg:   12px;
+    --radius-pill: 9999px;
+
+    /* Spacing scale (8px base) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  }
+
+  /* ─────────────────────────────────────────────
+     RESET & BASE
+  ───────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--gray-900);
+    background: var(--gray-50);
+  }
+  a { color: var(--green-400); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ─────────────────────────────────────────────
+     LAYOUT
+  ───────────────────────────────────────────── */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: white;
+    border-bottom: 1px solid var(--gray-200);
+    height: 56px;
+    display: flex; align-items: center;
+    padding: 0 var(--space-6); gap: var(--space-3);
+  }
+  .nav-badge {
+    width: 32px; height: 32px;
+    background: var(--green-400); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 600; font-size: 12px;
+  }
+  .nav-title {
+    font-weight: 600; font-size: 15px; color: var(--gray-900);
+  }
+  .nav-tag {
+    margin-left: auto;
+    font-size: 11px; font-weight: 500;
+    background: var(--green-50); color: var(--green-600);
+    border: 1px solid var(--green-100);
+    border-radius: var(--radius-pill);
+    padding: 3px 10px;
+  }
+
+  .layout { display: flex; min-height: calc(100vh - 56px); }
+
+  .sidebar {
+    width: 200px; flex-shrink: 0;
+    position: sticky; top: 56px;
+    height: calc(100vh - 56px); overflow-y: auto;
+    background: white; border-right: 1px solid var(--gray-200);
+    padding: var(--space-6) var(--space-4);
+  }
+  .sidebar-section { margin-bottom: var(--space-6); }
+  .sidebar-label {
+    font-size: 10px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--gray-400);
+    margin-bottom: var(--space-2); padding: 0 var(--space-2);
+  }
+  .sidebar a {
+    display: block; padding: 5px var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 13px; color: var(--gray-500);
+    transition: background .12s, color .12s;
+  }
+  .sidebar a:hover { background: var(--green-50); color: var(--green-400); text-decoration: none; }
+
+  .main { flex: 1; padding: var(--space-10) var(--space-12); max-width: 860px; }
+
+  /* ─────────────────────────────────────────────
+     SECTION STRUCTURE
+  ───────────────────────────────────────────── */
+  .section { margin-bottom: var(--space-16); }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 26px; font-weight: 400;
+    color: var(--gray-900);
+    border-bottom: 2px solid var(--green-400);
+    padding-bottom: var(--space-3);
+    margin-bottom: var(--space-8);
+  }
+  .section-title.stretch {
+    border-bottom-color: var(--purple-600);
+    color: var(--purple-600);
+  }
+  .sub-title {
+    font-size: 13px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--gray-500);
+    margin: var(--space-8) 0 var(--space-4);
+  }
+  .desc {
+    font-size: 13px; color: var(--gray-500); line-height: 1.7;
+    margin-bottom: var(--space-5); max-width: 640px;
+  }
+
+  /* ─────────────────────────────────────────────
+     DEMO AREA
+  ───────────────────────────────────────────── */
+  .demo {
+    background: white; border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg); padding: var(--space-6);
+    margin-bottom: var(--space-5);
+  }
+  .demo-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--gray-400);
+    margin-bottom: var(--space-5);
+  }
+  .demo-row { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; margin-bottom: var(--space-4); }
+  .demo-row:last-child { margin-bottom: 0; }
+
+  /* ─────────────────────────────────────────────
+     COLOR SWATCHES
+  ───────────────────────────────────────────── */
+  .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: var(--space-3); }
+  .swatch { border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--gray-200); }
+  .swatch-color { height: 64px; }
+  .swatch-meta { padding: 8px 10px; background: white; }
+  .swatch-name { font-size: 12px; font-weight: 600; color: var(--gray-700); }
+  .swatch-hex  { font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+  .swatch-use  { font-size: 11px; color: var(--gray-400); margin-top: 2px; line-height: 1.4; }
+
+  /* ─────────────────────────────────────────────
+     TYPOGRAPHY SPECIMENS
+  ───────────────────────────────────────────── */
+  .type-row {
+    display: grid; grid-template-columns: 160px 1fr;
+    gap: var(--space-4); align-items: start;
+    padding: var(--space-4) 0; border-bottom: 1px solid var(--gray-200);
+  }
+  .type-row:last-child { border-bottom: none; }
+  .type-meta {}
+  .type-role { font-size: 11px; font-weight: 600; color: var(--green-400); text-transform: uppercase; letter-spacing: .05em; }
+  .type-spec { font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); margin-top: 3px; line-height: 1.6; }
+
+  /* Type scale */
+  .t-hero    { font-family: var(--font-display); font-size: 42px; font-weight: 400; color: var(--gray-900); line-height: 1.1; }
+  .t-h1      { font-family: var(--font-display); font-size: 30px; font-weight: 400; color: var(--gray-900); }
+  .t-h2      { font-family: var(--font-body);    font-size: 20px; font-weight: 600; color: var(--gray-900); }
+  .t-h3      { font-family: var(--font-body);    font-size: 15px; font-weight: 600; color: var(--gray-700); }
+  .t-body    { font-family: var(--font-body);    font-size: 14px; font-weight: 400; color: var(--gray-700); line-height: 1.65; }
+  .t-meta    { font-family: var(--font-body);    font-size: 12px; font-weight: 400; color: var(--gray-400); }
+  .t-label   { font-family: var(--font-body);    font-size: 13px; font-weight: 500; color: var(--gray-700); }
+  .t-button  { font-family: var(--font-body);    font-size: 14px; font-weight: 500; }
+  .t-nav     { font-family: var(--font-body);    font-size: 14px; font-weight: 400; color: var(--gray-500); }
+  .t-nav.active { color: var(--green-400); font-weight: 500; }
+
+  /* ─────────────────────────────────────────────
+     BUTTONS
+  ───────────────────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--font-body); font-size: 14px; font-weight: 500;
+    border-radius: var(--radius-md); padding: 10px 20px;
+    cursor: pointer; border: none; transition: all .15s;
+    text-decoration: none; line-height: 1;
+  }
+  .btn-primary  { background: var(--green-400); color: white; }
+  .btn-primary:hover { background: var(--green-500); text-decoration: none; color: white; }
+  .btn-secondary { background: white; color: var(--gray-700); border: 1px solid var(--gray-200); }
+  .btn-secondary:hover { background: var(--gray-50); text-decoration: none; }
+  .btn-ghost { background: none; border: none; color: var(--green-400); padding: 10px 4px; }
+  .btn-danger { background: var(--red-500); color: white; }
+  .btn-danger:hover { background: var(--red-600); }
+  .btn-follow-active   { background: var(--green-400); color: white; border-radius: var(--radius-pill); padding: 7px 18px; font-size: 13px; }
+  .btn-follow-inactive { background: white; color: var(--gray-700); border: 1px solid var(--gray-200); border-radius: var(--radius-pill); padding: 7px 18px; font-size: 13px; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn:active { transform: scale(.98); }
+
+  /* ─────────────────────────────────────────────
+     FORM INPUTS
+  ───────────────────────────────────────────── */
+  .form-group { margin-bottom: var(--space-4); }
+  .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--gray-700); margin-bottom: 6px; }
+  .form-input {
+    width: 100%; height: 42px;
+    border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
+    padding: 0 var(--space-3); font-family: var(--font-body); font-size: 14px;
+    color: var(--gray-900); outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .form-input::placeholder { color: var(--gray-400); }
+  .form-input:focus { border-color: var(--green-400); box-shadow: 0 0 0 3px rgba(26,158,110,.12); }
+  .form-input.error { border-color: var(--red-500); }
+  .form-textarea {
+    width: 100%; min-height: 96px;
+    border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
+    padding: var(--space-3); font-family: var(--font-body); font-size: 14px;
+    resize: vertical; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .form-textarea:focus { border-color: var(--green-400); box-shadow: 0 0 0 3px rgba(26,158,110,.12); }
+  .form-error { font-size: 12px; color: var(--red-500); margin-top: 4px; }
+  .form-hint  { font-size: 12px; color: var(--gray-400); margin-top: 4px; }
+  .checkbox-label { display: flex; align-items: center; gap: var(--space-2); font-size: 13px; color: var(--gray-700); cursor: pointer; }
+  .checkbox-label input { accent-color: var(--green-400); width: 16px; height: 16px; }
+
+  /* ─────────────────────────────────────────────
+     TAGS / PILLS
+  ───────────────────────────────────────────── */
+  .tag {
+    display: inline-flex; align-items: center;
+    border-radius: var(--radius-pill);
+    padding: 4px 10px; font-size: 12px; font-weight: 500;
+  }
+  .tag-nature   { background: var(--tag-nature-bg);   color: var(--tag-nature-fg); }
+  .tag-art      { background: var(--tag-art-bg);      color: var(--tag-art-fg); }
+  .tag-historic { background: var(--tag-historic-bg); color: var(--tag-historic-fg); }
+  .tag-food     { background: var(--tag-food-bg);     color: var(--tag-food-fg); }
+  .tag-edit {
+    background: var(--green-50); color: var(--green-600);
+    border: 1px solid var(--green-100);
+  }
+
+  /* ─────────────────────────────────────────────
+     CARDS
+  ───────────────────────────────────────────── */
+  .card { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius-md); overflow: hidden; }
+  .card-img { height: 160px; background: var(--green-50); }
+  .card-img.amber { background: #FEEBC8; }
+  .card-body { padding: var(--space-4); }
+  .card-author { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+  .avatar { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; flex-shrink: 0; }
+  .avatar-sm { width: 28px; height: 28px; font-size: 10px; background: var(--green-400); }
+  .avatar-md { width: 36px; height: 36px; font-size: 13px; }
+  .avatar-green  { background: var(--green-400); }
+  .avatar-blue   { background: #3B82F6; }
+  .avatar-orange { background: #F59E0B; }
+  .card-author-name { font-size: 13px; font-weight: 500; color: var(--gray-700); }
+  .card-time { font-size: 11px; color: var(--gray-400); }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--gray-900); margin-bottom: var(--space-1); }
+  .card-desc {
+    font-size: 13px; color: var(--gray-500); line-height: 1.5; margin-bottom: var(--space-3);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .card-footer { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+  .card-location { font-size: 11px; color: var(--gray-400); }
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+
+  /* ─────────────────────────────────────────────
+     NAVIGATION SPECIMENS
+  ───────────────────────────────────────────── */
+  .nav-specimen { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius-md); overflow: hidden; margin-bottom: var(--space-5); }
+  .nav-specimen-bar { height: 56px; display: flex; align-items: center; padding: 0 var(--space-5); gap: var(--space-7); border-bottom: 1px solid var(--gray-200); }
+  .nav-link { font-size: 14px; color: var(--gray-500); cursor: pointer; }
+  .nav-link.active { color: var(--green-400); font-weight: 500; }
+  .nav-tab-bar { display: flex; border-bottom: 1px solid var(--gray-200); padding: 0 var(--space-5); }
+  .nav-tab { padding: 12px var(--space-4); font-size: 13px; color: var(--gray-500); border-bottom: 2px solid transparent; transition: all .15s; margin-bottom: -1px; cursor: pointer; }
+  .nav-tab.active { color: var(--green-400); border-bottom-color: var(--green-400); font-weight: 500; }
+
+  /* ─────────────────────────────────────────────
+     SPACING VISUAL
+  ───────────────────────────────────────────── */
+  .spacing-row { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-2) 0; border-bottom: 1px solid var(--gray-200); }
+  .spacing-token { font-family: var(--font-mono); font-size: 12px; color: var(--green-500); width: 52px; }
+  .spacing-val   { font-family: var(--font-mono); font-size: 12px; color: var(--gray-400); width: 36px; }
+  .spacing-bar-wrap { width: 180px; }
+  .spacing-bar { height: 12px; background: var(--green-400); border-radius: 2px; }
+  .spacing-use   { font-size: 12px; color: var(--gray-500); flex: 1; }
+
+  /* ─────────────────────────────────────────────
+     RADIUS DEMOS
+  ───────────────────────────────────────────── */
+  .radius-grid { display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: flex-end; }
+  .radius-item { text-align: center; }
+  .radius-box {
+    background: var(--green-50); border: 1px solid var(--green-100);
+    width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 11px; color: var(--green-500);
+    margin-bottom: var(--space-2);
+  }
+  .radius-label { font-size: 11px; color: var(--gray-400); }
+
+  /* ─────────────────────────────────────────────
+     ICON GRID
+  ───────────────────────────────────────────── */
+  .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: var(--space-2); }
+  .icon-item { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-2); background: white; border: 1px solid var(--gray-200); border-radius: var(--radius-md); font-size: 11px; color: var(--gray-400); text-align: center; }
+  .icon-svg { color: var(--gray-500); }
+
+  /* ─────────────────────────────────────────────
+     STATE DEMOS
+  ───────────────────────────────────────────── */
+  .state-item { text-align: center; }
+  .state-label { font-size: 11px; color: var(--gray-400); margin-top: var(--space-2); }
+  .toast { display: inline-flex; align-items: center; gap: var(--space-2); background: var(--green-400); color: white; padding: 10px var(--space-4); border-radius: var(--radius-md); font-size: 13px; font-weight: 500; }
+  .toast-dot { width: 8px; height: 8px; background: white; border-radius: 50%; }
+
+  /* ─────────────────────────────────────────────
+     STRETCH SECTION ACCENT
+  ───────────────────────────────────────────── */
+  .stretch-badge {
+    display: inline-block;
+    background: var(--purple-50); color: var(--purple-600);
+    border: 1px solid var(--purple-400);
+    border-radius: var(--radius-pill);
+    font-size: 11px; font-weight: 600; padding: 3px 10px;
+    margin-bottom: var(--space-4);
+  }
+  .stretch-note {
+    background: var(--purple-50); border-left: 3px solid var(--purple-400);
+    padding: var(--space-4); border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    font-size: 13px; color: var(--purple-600); margin-bottom: var(--space-5);
+  }
+
+  /* ─────────────────────────────────────────────
+     IMAGERY PLACEHOLDERS
+  ───────────────────────────────────────────── */
+  .ph-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-3); }
+  .ph-item { border-radius: var(--radius-md); height: 56px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
+
+  /* Sidebar scrollbar */
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-badge">HG</div>
+  <span class="nav-title">HiddenGem</span>
+  <span class="nav-tag">Style Guide v1.0</span>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Brand</div>
+      <a href="#brand">Brand identity</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Foundations</div>
+      <a href="#colors">Colors</a>
+      <a href="#typography">Typography</a>
+      <a href="#spacing">Spacing</a>
+      <a href="#radius">Border radius</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Components</div>
+      <a href="#buttons">Buttons</a>
+      <a href="#forms">Form inputs</a>
+      <a href="#tags">Tags & pills</a>
+      <a href="#cards">Cards</a>
+      <a href="#navigation">Navigation</a>
+      <a href="#icons">Icons</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Patterns</div>
+      <a href="#states">States</a>
+      <a href="#imagery">Imagery</a>
+      <a href="#stretch">Stretch styles</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- BRAND -->
+    <section class="section" id="brand">
+      <h2 class="section-title">Brand identity</h2>
+      <p class="desc">HiddenGem's visual identity is clean, trustworthy, and community-oriented. A single dominant green signals nature, discovery, and authenticity. The display typeface (DM Serif Display) adds warmth and editorial character to headings, while DM Sans handles all UI copy.</p>
+
+      <div class="sub-title">Logo variants</div>
+      <div class="demo">
+        <div class="demo-label">Specimens</div>
+        <div class="demo-row" style="gap:24px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;background:white;border:1px solid var(--gray-200);border-radius:var(--radius-md);">
+            <div class="nav-badge">HG</div>
+            <span style="font-weight:600;font-size:16px;color:var(--gray-900);">HiddenGem</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;background:#0A6344;border-radius:var(--radius-md);">
+            <div style="width:32px;height:32px;background:white;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--green-500);font-weight:600;font-size:12px;">HG</div>
+            <span style="font-weight:600;font-size:16px;color:white;">HiddenGem</span>
+          </div>
+          <div style="padding:12px 16px;background:var(--gray-100);border-radius:var(--radius-md);">
+            <div class="nav-badge" style="width:40px;height:40px;font-size:14px;">HG</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLORS -->
+    <section class="section" id="colors">
+      <h2 class="section-title">Color palette</h2>
+
+      <div class="sub-title">Primary greens</div>
+      <div class="swatch-grid" style="margin-bottom:20px;">
+        <div class="swatch"><div class="swatch-color" style="background:#E8F5F0;"></div><div class="swatch-meta"><div class="swatch-name">Green 50</div><div class="swatch-hex">#E8F5F0</div><div class="swatch-use">Backgrounds, focus fills</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#B7E4C7;"></div><div class="swatch-meta"><div class="swatch-name">Green 100</div><div class="swatch-hex">#B7E4C7</div><div class="swatch-use">Card accents, dividers</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#1A9E6E;"></div><div class="swatch-meta"><div class="swatch-name">Green 400 (primary)</div><div class="swatch-hex">#1A9E6E</div><div class="swatch-use">Buttons, links, active</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#0D7A54;"></div><div class="swatch-meta"><div class="swatch-name">Green 500</div><div class="swatch-hex">#0D7A54</div><div class="swatch-use">Hover state</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#0A6344;"></div><div class="swatch-meta"><div class="swatch-name">Green 600</div><div class="swatch-hex">#0A6344</div><div class="swatch-use">Headings, hero bg</div></div></div>
+      </div>
+
+      <div class="sub-title">Neutrals</div>
+      <div class="swatch-grid" style="margin-bottom:20px;">
+        <div class="swatch"><div class="swatch-color" style="background:#FFFFFF;border-bottom:1px solid var(--gray-200);"></div><div class="swatch-meta"><div class="swatch-name">White</div><div class="swatch-hex">#FFFFFF</div><div class="swatch-use">Cards, nav, forms</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#F9FAFB;"></div><div class="swatch-meta"><div class="swatch-name">Gray 50</div><div class="swatch-hex">#F9FAFB</div><div class="swatch-use">Page background</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#F3F4F6;"></div><div class="swatch-meta"><div class="swatch-name">Gray 100</div><div class="swatch-hex">#F3F4F6</div><div class="swatch-use">Auth page bg</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#E5E7EB;"></div><div class="swatch-meta"><div class="swatch-name">Gray 200</div><div class="swatch-hex">#E5E7EB</div><div class="swatch-use">Borders, dividers</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#9CA3AF;"></div><div class="swatch-meta"><div class="swatch-name">Gray 400</div><div class="swatch-hex">#9CA3AF</div><div class="swatch-use">Placeholders, hints</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#6B7280;"></div><div class="swatch-meta"><div class="swatch-name">Gray 500</div><div class="swatch-hex">#6B7280</div><div class="swatch-use">Meta, timestamps</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#374151;"></div><div class="swatch-meta"><div class="swatch-name">Gray 700</div><div class="swatch-hex">#374151</div><div class="swatch-use">Body copy</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#111827;"></div><div class="swatch-meta"><div class="swatch-name">Gray 900</div><div class="swatch-hex">#111827</div><div class="swatch-use">Primary text</div></div></div>
+      </div>
+
+      <div class="sub-title">Semantic tag colors</div>
+      <p class="desc">Used only for category tags and status badges. Never use for primary UI actions.</p>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch-color" style="background:#D1FAE5;"></div><div class="swatch-meta"><div class="swatch-name">Tag Green</div><div class="swatch-hex">#D1FAE5 / #065F46</div><div class="swatch-use">Nature, outdoor</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#DBEAFE;"></div><div class="swatch-meta"><div class="swatch-name">Tag Blue</div><div class="swatch-hex">#DBEAFE / #1E40AF</div><div class="swatch-use">Art, architecture</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#EDE9FE;"></div><div class="swatch-meta"><div class="swatch-name">Tag Purple</div><div class="swatch-hex">#EDE9FE / #5B21B6</div><div class="swatch-use">Historic, culture</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#FEF3C7;"></div><div class="swatch-meta"><div class="swatch-name">Tag Amber</div><div class="swatch-hex">#FEF3C7 / #92400E</div><div class="swatch-use">Food, coffee</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#EF4444;"></div><div class="swatch-meta"><div class="swatch-name">Error / Danger</div><div class="swatch-hex">#EF4444</div><div class="swatch-use">Delete actions only</div></div></div>
+      </div>
+    </section>
+
+    <!-- TYPOGRAPHY -->
+    <section class="section" id="typography">
+      <h2 class="section-title">Typography</h2>
+      <p class="desc">Two typefaces: <strong>DM Serif Display</strong> for page titles and hero headings (editorial warmth), and <strong>DM Sans</strong> for all UI copy, labels, and body text. Both available free on Google Fonts.</p>
+      <p class="desc" style="font-family:var(--font-mono);font-size:12px;color:var(--gray-500);">Fallback stack: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif</p>
+
+      <div class="demo">
+        <div class="type-row">
+          <div class="type-meta"><div class="type-role">Hero title</div><div class="type-spec">DM Serif Display<br>42px · weight 400<br>line-height 1.1</div></div>
+          <div class="t-hero">Discover Local</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><div class="type-role">Page heading H1</div><div class="type-spec">DM Serif Display<br>30px · weight 400<br>line-height 1.2</div></div>
+          <div class="t-h1">Share Your Hidden Gem</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><div class="type-role">Card title H2</div><div class="type-spec">DM Sans<br>20px · weight 600<br>line-height 1.3</div></div>
+          <div class="t-h2">Hidden Cascade Behind the Old Mill</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><div class="type-role">Section label H3</div><div class="type-spec">DM Sans<br>15px · weight 600<br>line-height 1.4</div></div>
+          <div class="t-h3">Location details</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><div class="type-role">Body</div><div class="type-spec">DM Sans<br>14px · weight 400<br>line-height 1.65</div></div>
+          <div class="t-body">Stumbled upon this incredible hidden waterfall while hiking off the beaten path. The sound of cascading water echoes through the forest — a perfect spot to escape the crowds.</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><div class="type-role">Meta / timestamp</div><div class="type-spec">DM Sans<br>12px · weight 400<br>color: gray 400</div></div>
+          <div class="t-meta">@explorer_jane · 2 hours ago · 2.3 miles away</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><div class="type-role">Button text</div><div class="type-spec">DM Sans<br>14px · weight 500</div></div>
+          <div><button class="btn btn-primary" style="pointer-events:none;">Publish Hidden Gem</button></div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta"><div class="type-role">Nav links</div><div class="type-spec">DM Sans<br>14px · weight 400/500<br>active: green 400</div></div>
+          <div style="display:flex;gap:24px;">
+            <span class="t-nav active">Discover</span>
+            <span class="t-nav">Create</span>
+            <span class="t-nav">Profile</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPACING -->
+    <section class="section" id="spacing">
+      <h2 class="section-title">Spacing</h2>
+      <p class="desc">8px base grid. All spacing values are multiples of 4 or 8. Use CSS variables (<code style="font-family:var(--font-mono);font-size:12px;background:var(--gray-100);padding:1px 5px;border-radius:3px;">--space-N</code>) throughout.</p>
+      <div class="demo">
+        <div class="spacing-row"><span class="spacing-token">--space-1</span><span class="spacing-val">4px</span><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:4px;"></div></div><span class="spacing-use">Tight gaps — icon to label</span></div>
+        <div class="spacing-row"><span class="spacing-token">--space-2</span><span class="spacing-val">8px</span><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:8px;"></div></div><span class="spacing-use">Input vertical padding, tag pill padding</span></div>
+        <div class="spacing-row"><span class="spacing-token">--space-4</span><span class="spacing-val">16px</span><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:16px;"></div></div><span class="spacing-use">Card internal padding, form field gap</span></div>
+        <div class="spacing-row"><span class="spacing-token">--space-6</span><span class="spacing-val">24px</span><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:24px;"></div></div><span class="spacing-use">Card-to-card gap, section padding</span></div>
+        <div class="spacing-row"><span class="spacing-token">--space-8</span><span class="spacing-val">32px</span><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:32px;"></div></div><span class="spacing-use">Section vertical spacing, nav height</span></div>
+        <div class="spacing-row"><span class="spacing-token">--space-10</span><span class="spacing-val">40px</span><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:40px;"></div></div><span class="spacing-use">Page-level top/bottom padding</span></div>
+        <div class="spacing-row"><span class="spacing-token">--space-16</span><span class="spacing-val">64px</span><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:64px;"></div></div><span class="spacing-use">Between major landing page sections</span></div>
+      </div>
+    </section>
+
+    <!-- RADIUS -->
+    <section class="section" id="radius">
+      <h2 class="section-title">Border radius</h2>
+      <div class="demo">
+        <div class="radius-grid">
+          <div class="radius-item"><div class="radius-box" style="border-radius:4px;">4px</div><div class="radius-label">sm — inputs</div></div>
+          <div class="radius-item"><div class="radius-box" style="border-radius:8px;">8px</div><div class="radius-label">md — cards</div></div>
+          <div class="radius-item"><div class="radius-box" style="border-radius:12px;">12px</div><div class="radius-label">lg — modals</div></div>
+          <div class="radius-item"><div class="radius-box" style="border-radius:9999px;width:72px;height:32px;">pill</div><div class="radius-label">pill — tags, follow</div></div>
+          <div class="radius-item"><div class="radius-box" style="border-radius:50%;width:56px;height:56px;"></div><div class="radius-label">circle — avatars</div></div>
+          <div class="radius-item"><div class="radius-box" style="border-radius:6px;">6px</div><div class="radius-label">logo badge</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BUTTONS -->
+    <section class="section" id="buttons">
+      <h2 class="section-title">Buttons</h2>
+      <div class="demo">
+        <div class="demo-label">Variants</div>
+        <div class="demo-row">
+          <button class="btn btn-primary">Publish Hidden Gem</button>
+          <button class="btn btn-secondary">Save as Draft</button>
+          <button class="btn btn-ghost">Forgot password?</button>
+          <button class="btn btn-danger">Delete Post</button>
+        </div>
+        <div class="demo-row">
+          <button class="btn btn-follow-active">Following</button>
+          <button class="btn btn-follow-inactive">Follow</button>
+        </div>
+        <div class="demo-row">
+          <button class="btn btn-primary" disabled>Disabled</button>
+          <button class="btn btn-secondary" disabled>Disabled</button>
+        </div>
+        <div class="demo-row" style="gap:10px;">
+          <button class="btn btn-secondary" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>
+            Continue with Google
+          </button>
+          <button class="btn btn-secondary" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.62 23.1 24 18.1 24 12.07z"/></svg>
+            Continue with Facebook
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FORMS -->
+    <section class="section" id="forms">
+      <h2 class="section-title">Form inputs</h2>
+      <div class="demo">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div>
+            <div class="form-group"><label class="form-label">Default</label><input class="form-input" type="text" placeholder="Enter your full name"></div>
+            <div class="form-group"><label class="form-label">Focus</label><input class="form-input" type="text" value="explorer_jane" style="border-color:var(--green-400);box-shadow:0 0 0 3px rgba(26,158,110,.12);"></div>
+            <div class="form-group"><label class="form-label">Error</label><input class="form-input error" type="email" value="not-an-email" style="border-color:var(--red-500);"><div class="form-error">Please enter a valid email address</div></div>
+            <div class="form-group"><label class="form-label">Disabled</label><input class="form-input" type="text" value="Cannot edit" disabled style="opacity:.5;cursor:not-allowed;background:var(--gray-50);"></div>
+          </div>
+          <div>
+            <div class="form-group"><label class="form-label">Textarea</label><textarea class="form-textarea" placeholder="Describe this hidden gem..."></textarea><div class="form-hint" style="text-align:right;">0 / 300</div></div>
+            <div class="form-group" style="margin-top:12px;"><label class="form-label">Checkboxes</label>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <label class="checkbox-label"><input type="checkbox" checked> Public — visible to all</label>
+                <label class="checkbox-label"><input type="checkbox"> Private — only you</label>
+                <label class="checkbox-label"><input type="checkbox" checked> Allow comments</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAGS -->
+    <section class="section" id="tags">
+      <h2 class="section-title">Tags &amp; pills</h2>
+      <p class="desc">All tags use <code style="font-family:var(--font-mono);font-size:12px;background:var(--gray-100);padding:1px 5px;border-radius:3px;">border-radius: 9999px</code> (pill). Padding: 4px 10px. Font: DM Sans 500 12px. Color is category-specific.</p>
+      <div class="demo">
+        <div class="demo-row" style="gap:8px;flex-wrap:wrap;">
+          <span class="tag tag-nature">#waterfall</span>
+          <span class="tag tag-nature">#nature</span>
+          <span class="tag tag-nature">#hiking</span>
+          <span class="tag tag-art">#urban</span>
+          <span class="tag tag-art">#art</span>
+          <span class="tag tag-historic">#historic</span>
+          <span class="tag tag-food">#food</span>
+          <span class="tag tag-food">#coffee</span>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="demo-label">Editable (form context)</div>
+          <div class="demo-row" style="gap:8px;">
+            <span class="tag tag-edit">#waterfall <span style="margin-left:4px;opacity:.7;cursor:pointer;">×</span></span>
+            <span class="tag tag-edit">#hiking <span style="margin-left:4px;opacity:.7;cursor:pointer;">×</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARDS -->
+    <section class="section" id="cards">
+      <h2 class="section-title">Cards</h2>
+      <div class="demo">
+        <div class="card-grid">
+          <div class="card">
+            <div class="card-img"></div>
+            <div class="card-body">
+              <div class="card-author">
+                <div class="avatar avatar-sm avatar-green">JD</div>
+                <div><div class="card-author-name">@johndoe_explorer</div><div class="card-time">2 hours ago</div></div>
+              </div>
+              <div class="card-title">Secret Waterfall Trail</div>
+              <div class="card-desc">Hidden behind the old mill, this stunning waterfall is perfect for a peaceful afternoon. The trail is unmarked but worth the adventure!</div>
+              <div class="card-footer">
+                <span class="card-location">📍 Mill Creek Park</span>
+                <span class="tag tag-nature" style="font-size:11px;padding:2px 8px;">#nature</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-img amber"></div>
+            <div class="card-body">
+              <div class="card-author">
+                <div class="avatar avatar-sm avatar-orange">UR</div>
+                <div><div class="card-author-name">@urban_explorer</div><div class="card-time">5 hours ago</div></div>
+              </div>
+              <div class="card-title">Rooftop Garden Oasis</div>
+              <div class="card-desc">Amazing hidden rooftop garden with city views. Access through the vintage bookstore on 5th. Perfect sunset spot!</div>
+              <div class="card-footer">
+                <span class="card-location">📍 Downtown District</span>
+                <span class="tag tag-art" style="font-size:11px;padding:2px 8px;">#urban</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NAVIGATION -->
+    <section class="section" id="navigation">
+      <h2 class="section-title">Navigation</h2>
+      <div class="nav-specimen">
+        <div class="nav-specimen-bar">
+          <div class="nav-badge" style="width:28px;height:28px;font-size:10px;">HG</div>
+          <span style="font-weight:600;font-size:15px;color:var(--gray-900);">HiddenGem</span>
+          <span class="nav-link active">Discover</span>
+          <span class="nav-link">Create</span>
+          <span class="nav-link">Profile</span>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+            <div class="avatar avatar-sm avatar-green">JE</div>
+            <span style="font-size:13px;color:var(--gray-500);">@explorer_jane</span>
+          </div>
+        </div>
+      </div>
+      <div class="nav-specimen">
+        <div class="nav-tab-bar">
+          <div class="nav-tab active">My Gems</div>
+          <div class="nav-tab">Saved</div>
+          <div class="nav-tab">Photos</div>
+        </div>
+        <div style="padding:16px 20px;color:var(--gray-400);font-size:13px;">Tab content area</div>
+      </div>
+    </section>
+
+    <!-- ICONS -->
+    <section class="section" id="icons">
+      <h2 class="section-title">Icons</h2>
+      <p class="desc">Outlined icon style — Heroicons outline or Lucide (both free). Default color: gray 500. Active/brand: green 400.</p>
+      <div class="demo">
+        <div class="icon-grid">
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>Map pin</div>
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l8.84 8.84 8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>Like / heart</div>
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comment</div>
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</div>
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Bookmark</div>
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search</div>
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>Back</div>
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add / plus</div>
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Rating star</div>
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notification</div>
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Community</div>
+          <div class="icon-item"><svg class="icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Photo</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATES -->
+    <section class="section" id="states">
+      <h2 class="section-title">Interaction states</h2>
+      <div class="demo">
+        <div class="demo-label">Button states</div>
+        <div class="demo-row">
+          <div class="state-item"><button class="btn btn-primary" style="pointer-events:none;">Default</button><div class="state-label">Default</div></div>
+          <div class="state-item"><button class="btn btn-primary" style="pointer-events:none;background:var(--green-500);">Hover</button><div class="state-label">Hover</div></div>
+          <div class="state-item"><button class="btn btn-primary" style="pointer-events:none;transform:scale(.98);background:var(--green-600);">Active</button><div class="state-label">Active</div></div>
+          <div class="state-item"><button class="btn btn-primary" disabled>Disabled</button><div class="state-label">Disabled</div></div>
+        </div>
+        <div style="margin-top:20px;">
+          <div class="demo-label">Focus ring</div>
+          <input class="form-input" value="Focused input" style="border-color:var(--green-400);box-shadow:0 0 0 3px rgba(26,158,110,.12);max-width:280px;">
+        </div>
+        <div style="margin-top:20px;">
+          <div class="demo-label">Success toast</div>
+          <div class="toast"><div class="toast-dot"></div> Gem published successfully</div>
+        </div>
+        <div style="margin-top:20px;">
+          <div class="demo-label">Error state</div>
+          <div style="max-width:280px;">
+            <input class="form-input" type="email" value="bad-email" style="border-color:var(--red-500);">
+            <div class="form-error">Please enter a valid email address</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- IMAGERY -->
+    <section class="section" id="imagery">
+      <h2 class="section-title">Imagery</h2>
+      <p class="desc">All photos are user-generated. No filters or overlays. Feed cards use 16:9 at 160px fixed height. Detail pages are unconstrained height, max 600px.</p>
+      <div class="sub-title">Placeholder colors by category</div>
+      <div class="ph-grid">
+        <div class="ph-item" style="background:#C6F6D5;color:#065F46;">Nature</div>
+        <div class="ph-item" style="background:#FEEBC8;color:#92400E;">Art / Urban</div>
+        <div class="ph-item" style="background:#E9D8FD;color:#5B21B6;">Food</div>
+        <div class="ph-item" style="background:#FEFCBF;color:#713F12;">Historic</div>
+        <div class="ph-item" style="background:#E5E7EB;color:#374151;">Default</div>
+      </div>
+    </section>
+
+    <!-- STRETCH -->
+    <section class="section" id="stretch">
+      <h2 class="section-title stretch">Stretch feature styles</h2>
+      <div class="stretch-badge">Stretch feature — Follow / Unfollow</div>
+      <div class="stretch-note">These styles apply exclusively to the follow/unfollow social graph feature. They are implemented after MVP completion. The purple accent differentiates the social layer from the core green brand.</div>
+
+      <div class="sub-title">Stretch accent colors</div>
+      <div class="swatch-grid" style="margin-bottom:20px;">
+        <div class="swatch"><div class="swatch-color" style="background:#EEEDFE;"></div><div class="swatch-meta"><div class="swatch-name">Purple 50</div><div class="swatch-hex">#EEEDFE</div><div class="swatch-use">Stretch section bg</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#AFA9EC;"></div><div class="swatch-meta"><div class="swatch-name">Purple 200</div><div class="swatch-hex">#AFA9EC</div><div class="swatch-use">Stretch accents</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#7F77DD;"></div><div class="swatch-meta"><div class="swatch-name">Purple 400</div><div class="swatch-hex">#7F77DD</div><div class="swatch-use">Stretch borders</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#534AB7;"></div><div class="swatch-meta"><div class="swatch-name">Purple 600</div><div class="swatch-hex">#534AB7</div><div class="swatch-use">Community headings</div></div></div>
+      </div>
+
+      <div class="sub-title">Follow button states</div>
+      <div class="demo">
+        <div class="demo-row">
+          <button class="btn btn-follow-inactive">Follow</button>
+          <button class="btn btn-follow-active">Following</button>
+          <span style="font-size:13px;color:var(--gray-400);">Pill shape · 38px height · transitions between states on click</span>
+        </div>
+      </div>
+
+      <div class="sub-title">Community page tab bar</div>
+      <div class="nav-specimen">
+        <div class="nav-tab-bar">
+          <div class="nav-tab active" style="color:var(--purple-600);border-bottom-color:var(--purple-600);">Followers <span style="background:var(--purple-50);color:var(--purple-600);font-size:11px;padding:1px 7px;border-radius:var(--radius-pill);margin-left:6px;">1.2K</span></div>
+          <div class="nav-tab">Following <span style="background:var(--gray-100);color:var(--gray-500);font-size:11px;padding:1px 7px;border-radius:var(--radius-pill);margin-left:6px;">324</span></div>
+        </div>
+        <div style="padding:16px 20px;color:var(--gray-400);font-size:13px;">User follow/follower list</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const links = document.querySelectorAll('.sidebar a');
+  const sections = document.querySelectorAll('.section');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.style.background = l.style.color = '');
+        const a = document.querySelector('.sidebar a[href="#' + e.target.id + '"]');
+        if (a) { a.style.background = 'var(--green-50)'; a.style.color = 'var(--green-400)'; }
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
