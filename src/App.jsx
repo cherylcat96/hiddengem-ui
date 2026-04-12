@@ -7,6 +7,7 @@ import GemDetail from './pages/GemDetail';
 import Create from './pages/Create';
 import Landing from './pages/Landing';
 import Profile from './pages/Profile';
+import EditGem from './pages/EditGem';
 
 function App() {
   return (
@@ -21,8 +22,7 @@ function App() {
           <Route path="/gems/:id"      element={<GemDetail />} />
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/create"        element={<Create />} />
-          <Route path="/gems/:id"      element={<div>Gem Detail</div>} />
-          <Route path="/gems/:id/edit" element={<div>Edit Gem</div>} />
+          <Route path="/gems/:id/edit" element={<EditGem />} />
 
         </Routes>
       </BrowserRouter>

@@ -9,19 +9,63 @@ export default function GemDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [gem, setGem]           = useState(null);
-  const [comments, setComments] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [saved, setSaved]       = useState(false);
+  const [gem, setGem]             = useState(null);
+  const [comments, setComments]   = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [saved, setSaved]         = useState(false);
   const [saveCount, setSaveCount] = useState(0);
-  const [comment, setComment]   = useState('');
-  const [posting, setPosting]   = useState(false);
+  const [comment, setComment]     = useState('');
+  const [posting, setPosting]     = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
 
   useEffect(() => {
     fetchGem();
     fetchComments();
   }, [id]);
+
+  useEffect(() => {
+    if (!gem) return;
+
+    if (window.google && window.google.maps) {
+      initMap();
+      return;
+    }
+
+    const existing = document.querySelector(`script[src*="maps.googleapis"]`);
+    if (existing) {
+      existing.addEventListener('load', initMap);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_KEY}`;
+    script.async = true;
+    script.onload = initMap;
+    document.head.appendChild(script);
+
+    return () => {
+      script.removeEventListener('load', initMap);
+    };
+  }, [gem]);
+
+  const initMap = () => {
+    const mapEl = document.getElementById('gem-map');
+    if (!mapEl || !gem) return;
+
+    const map = new window.google.maps.Map(mapEl, {
+      center: { lat: Number(gem.latitude), lng: Number(gem.longitude) },
+      zoom: 15,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+    });
+
+    new window.google.maps.Marker({
+      position: { lat: Number(gem.latitude), lng: Number(gem.longitude) },
+      map,
+      title: gem.name,
+    });
+  };
 
   const fetchGem = async () => {
     try {
@@ -199,6 +243,14 @@ export default function GemDetail() {
                 >
                   🔗 Share
                 </button>
+                {user && user.username === gem.username && (
+                  <button
+                    style={{ ...styles.actionBtn, color: '#1A9E6E', borderColor: '#1A9E6E' }}
+                    onClick={() => navigate(`/gems/${id}/edit`)}
+                  >
+                    ✏️ Edit
+                  </button>
+                )}
               </div>
             </div>
 
@@ -228,9 +280,7 @@ export default function GemDetail() {
               )}
 
               {comments.length === 0 ? (
-                <p style={styles.noComments}>
-                  No comments yet. Be the first!
-                </p>
+                <p style={styles.noComments}>No comments yet. Be the first!</p>
               ) : (
                 <div style={styles.commentList}>
                   {comments.map(c => (
@@ -262,7 +312,7 @@ export default function GemDetail() {
             <div style={styles.sideCard}>
               <div style={styles.sideCardTitle}>Location</div>
               <div style={styles.sideCardBody}>
-                <div style={styles.mapPlaceholder}>🗺️ Map coming soon</div>
+                <div id="gem-map" style={styles.mapContainer} />
                 {gem.location_label && (
                   <p style={styles.sideLocation}>{gem.location_label}</p>
                 )}
@@ -295,59 +345,59 @@ export default function GemDetail() {
 }
 
 const styles = {
-  page:           { minHeight: '100vh', background: '#F9FAFB', fontFamily: 'system-ui, sans-serif' },
-  loading:        { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#9CA3AF' },
-  nav:            { height: '56px', background: 'white', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 10 },
-  navLeft:        { display: 'flex', alignItems: 'center', gap: '10px' },
-  logo:           { width: '32px', height: '32px', background: '#1A9E6E', borderRadius: '6px', color: 'white', fontWeight: '700', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  navBrand:       { fontWeight: '600', fontSize: '15px', color: '#111827' },
-  navLinks:       { display: 'flex', gap: '24px' },
-  navLink:        { fontSize: '14px', color: '#6B7280', cursor: 'pointer' },
-  container:      { maxWidth: '1100px', margin: '0 auto', padding: '24px' },
-  back:           { background: 'none', border: 'none', color: '#6B7280', fontSize: '13px', cursor: 'pointer', marginBottom: '16px', padding: 0 },
-  layout:         { display: 'flex', gap: '24px', alignItems: 'flex-start' },
-  main:           { flex: 1, minWidth: 0 },
-  photo:          { width: '100%', height: '360px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', marginBottom: '24px' },
-  photoImg:       { width: '100%', height: '100%', objectFit: 'cover' },
-  photoDots:      { position: 'absolute', bottom: '12px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '6px' },
-  dot:            { width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(255,255,255,.5)', cursor: 'pointer' },
-  dotActive:      { background: 'white' },
-  content:        { background: 'white', borderRadius: '12px', padding: '24px', marginBottom: '16px' },
-  metaRow:        { display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' },
-  tag:            { fontSize: '12px', fontWeight: '500', padding: '3px 10px', borderRadius: '9999px' },
-  tagSecondary:   { fontSize: '12px', color: '#6B7280', padding: '3px 0' },
-  title:          { fontSize: '24px', fontWeight: '700', color: '#111827', margin: '0 0 16px' },
-  authorRow:      { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' },
-  avatar:         { width: '36px', height: '36px', borderRadius: '50%', background: '#1A9E6E', color: 'white', fontSize: '14px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  authorName:     { fontSize: '14px', fontWeight: '500', color: '#111827' },
-  authorMeta:     { fontSize: '12px', color: '#9CA3AF' },
-  location:       { fontSize: '13px', color: '#6B7280', marginBottom: '16px' },
-  description:    { fontSize: '15px', color: '#374151', lineHeight: '1.7', marginBottom: '20px' },
-  actionBar:      { display: 'flex', gap: '8px', paddingTop: '16px', borderTop: '1px solid #F3F4F6' },
-  actionBtn:      { display: 'flex', alignItems: 'center', gap: '6px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', color: '#374151', cursor: 'pointer' },
-  actionBtnActive:{ background: '#E8F5F0', borderColor: '#1A9E6E', color: '#1A9E6E' },
-  commentsSection:{ background: 'white', borderRadius: '12px', padding: '24px' },
-  commentsTitle:  { fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 16px' },
-  commentForm:    { display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '20px' },
-  commentInput:   { flex: 1, height: '40px', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '0 12px', fontSize: '13px', outline: 'none' },
-  commentBtn:     { height: '40px', background: '#1A9E6E', color: 'white', border: 'none', borderRadius: '8px', padding: '0 16px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' },
-  noComments:     { color: '#9CA3AF', fontSize: '13px', textAlign: 'center', padding: '20px 0' },
-  commentList:    { display: 'flex', flexDirection: 'column', gap: '16px' },
-  comment:        { display: 'flex', gap: '10px' },
-  commentBody:    { flex: 1 },
-  commentMeta:    { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' },
-  commentAuthor:  { fontSize: '13px', fontWeight: '500', color: '#111827' },
-  authorBadge:    { background: '#E8F5F0', color: '#1A9E6E', fontSize: '10px', fontWeight: '600', padding: '1px 6px', borderRadius: '9999px', marginLeft: '6px' },
-  commentTime:    { fontSize: '11px', color: '#9CA3AF', marginLeft: 'auto' },
-  commentText:    { fontSize: '13px', color: '#374151', lineHeight: '1.5', margin: 0 },
-  sidebar:        { width: '260px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '16px' },
-  sideCard:       { background: 'white', borderRadius: '12px', padding: '16px' },
-  sideCardTitle:  { fontSize: '13px', fontWeight: '600', color: '#111827', marginBottom: '12px' },
-  sideCardBody:   { display: 'flex', flexDirection: 'column', gap: '8px' },
-  mapPlaceholder: { height: '120px', background: '#F3F4F6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' },
-  sideLocation:   { fontSize: '13px', color: '#374151', margin: 0 },
-  sideCoords:     { fontSize: '11px', color: '#9CA3AF', margin: 0 },
-  statRow:        { display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F3F4F6' },
-  statLabel:      { fontSize: '13px', color: '#6B7280' },
-  statValue:      { fontSize: '13px', fontWeight: '600', color: '#111827' },
+  page:            { minHeight: '100vh', background: '#F9FAFB', fontFamily: 'system-ui, sans-serif' },
+  loading:         { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#9CA3AF' },
+  nav:             { height: '56px', background: 'white', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 10 },
+  navLeft:         { display: 'flex', alignItems: 'center', gap: '10px' },
+  logo:            { width: '32px', height: '32px', background: '#1A9E6E', borderRadius: '6px', color: 'white', fontWeight: '700', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  navBrand:        { fontWeight: '600', fontSize: '15px', color: '#111827' },
+  navLinks:        { display: 'flex', gap: '24px' },
+  navLink:         { fontSize: '14px', color: '#6B7280', cursor: 'pointer' },
+  container:       { maxWidth: '1100px', margin: '0 auto', padding: '24px' },
+  back:            { background: 'none', border: 'none', color: '#6B7280', fontSize: '13px', cursor: 'pointer', marginBottom: '16px', padding: 0 },
+  layout:          { display: 'flex', gap: '24px', alignItems: 'flex-start' },
+  main:            { flex: 1, minWidth: 0 },
+  photo:           { width: '100%', height: '360px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', marginBottom: '24px' },
+  photoImg:        { width: '100%', height: '100%', objectFit: 'cover' },
+  photoDots:       { position: 'absolute', bottom: '12px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '6px' },
+  dot:             { width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(255,255,255,.5)', cursor: 'pointer' },
+  dotActive:       { background: 'white' },
+  content:         { background: 'white', borderRadius: '12px', padding: '24px', marginBottom: '16px' },
+  metaRow:         { display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' },
+  tag:             { fontSize: '12px', fontWeight: '500', padding: '3px 10px', borderRadius: '9999px' },
+  tagSecondary:    { fontSize: '12px', color: '#6B7280', padding: '3px 0' },
+  title:           { fontSize: '24px', fontWeight: '700', color: '#111827', margin: '0 0 16px' },
+  authorRow:       { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' },
+  avatar:          { width: '36px', height: '36px', borderRadius: '50%', background: '#1A9E6E', color: 'white', fontSize: '14px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  authorName:      { fontSize: '14px', fontWeight: '500', color: '#111827' },
+  authorMeta:      { fontSize: '12px', color: '#9CA3AF' },
+  location:        { fontSize: '13px', color: '#6B7280', marginBottom: '16px' },
+  description:     { fontSize: '15px', color: '#374151', lineHeight: '1.7', marginBottom: '20px' },
+  actionBar:       { display: 'flex', gap: '8px', paddingTop: '16px', borderTop: '1px solid #F3F4F6', flexWrap: 'wrap' },
+  actionBtn:       { display: 'flex', alignItems: 'center', gap: '6px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', color: '#374151', cursor: 'pointer' },
+  actionBtnActive: { background: '#E8F5F0', borderColor: '#1A9E6E', color: '#1A9E6E' },
+  commentsSection: { background: 'white', borderRadius: '12px', padding: '24px' },
+  commentsTitle:   { fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 16px' },
+  commentForm:     { display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '20px' },
+  commentInput:    { flex: 1, height: '40px', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '0 12px', fontSize: '13px', outline: 'none' },
+  commentBtn:      { height: '40px', background: '#1A9E6E', color: 'white', border: 'none', borderRadius: '8px', padding: '0 16px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' },
+  noComments:      { color: '#9CA3AF', fontSize: '13px', textAlign: 'center', padding: '20px 0' },
+  commentList:     { display: 'flex', flexDirection: 'column', gap: '16px' },
+  comment:         { display: 'flex', gap: '10px' },
+  commentBody:     { flex: 1 },
+  commentMeta:     { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' },
+  commentAuthor:   { fontSize: '13px', fontWeight: '500', color: '#111827' },
+  authorBadge:     { background: '#E8F5F0', color: '#1A9E6E', fontSize: '10px', fontWeight: '600', padding: '1px 6px', borderRadius: '9999px', marginLeft: '6px' },
+  commentTime:     { fontSize: '11px', color: '#9CA3AF', marginLeft: 'auto' },
+  commentText:     { fontSize: '13px', color: '#374151', lineHeight: '1.5', margin: 0 },
+  sidebar:         { width: '260px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '16px' },
+  sideCard:        { background: 'white', borderRadius: '12px', padding: '16px' },
+  sideCardTitle:   { fontSize: '13px', fontWeight: '600', color: '#111827', marginBottom: '12px' },
+  sideCardBody:    { display: 'flex', flexDirection: 'column', gap: '8px' },
+  mapContainer:    { width: '100%', height: '200px', borderRadius: '8px', overflow: 'hidden', marginBottom: '8px' },
+  sideLocation:    { fontSize: '13px', color: '#374151', margin: 0 },
+  sideCoords:      { fontSize: '11px', color: '#9CA3AF', margin: 0 },
+  statRow:         { display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F3F4F6' },
+  statLabel:       { fontSize: '13px', color: '#6B7280' },
+  statValue:       { fontSize: '13px', fontWeight: '600', color: '#111827' },
 };
