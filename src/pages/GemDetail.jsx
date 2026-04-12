@@ -102,6 +102,13 @@ export default function GemDetail() {
         <div style={styles.navLinks}>
           <span style={styles.navLink} onClick={() => navigate('/discover')}>Discover</span>
           <span style={styles.navLink} onClick={() => navigate('/create')}>Create</span>
+          {user ? (
+            <span style={styles.navLink} onClick={() => navigate(`/profile/${user.username}`)}>
+              Profile
+            </span>
+          ) : (
+            <span style={styles.navLink} onClick={() => navigate('/signin')}>Sign In</span>
+          )}
         </div>
       </nav>
 

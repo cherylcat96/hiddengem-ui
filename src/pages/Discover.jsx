@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getGems } from '../api/gems';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = ['Nature', 'Food', 'Art', 'Architecture', 'Historic', 'Other'];
 
@@ -15,11 +16,12 @@ const TAG_COLORS = {
 
 export default function Discover() {
   const navigate = useNavigate();
-  const [gems, setGems]           = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [category, setCategory]   = useState('');
-  const [sort, setSort]           = useState('newest');
-  const [search, setSearch]       = useState('');
+  const { user } = useAuth();
+  const [gems, setGems]         = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [category, setCategory] = useState('');
+  const [sort, setSort]         = useState('newest');
+  const [search, setSearch]     = useState('');
 
   useEffect(() => {
     fetchGems();
@@ -55,10 +57,17 @@ export default function Discover() {
           <div style={styles.logo}>HG</div>
           <span style={styles.navBrand}>HiddenGem</span>
         </div>
-        <div style={styles.navLinks}>
-          <span style={styles.navLinkActive}>Discover</span>
-          <span style={styles.navLink} onClick={() => navigate('/create')}>Create</span>
-        </div>
+      <div style={styles.navLinks}>
+        <span style={styles.navLinkActive}>Discover</span>
+        <span style={styles.navLink} onClick={() => navigate('/create')}>Create</span>
+        {user ? (
+          <span style={styles.navLink} onClick={() => navigate(`/profile/${user.username}`)}>
+            Profile
+          </span>
+        ) : (
+          <span style={styles.navLink} onClick={() => navigate('/signin')}>Sign In</span>
+        )}
+      </div>
       </nav>
 
       <div style={styles.layout}>
@@ -125,7 +134,11 @@ export default function Discover() {
           ) : (
             <div style={styles.grid}>
               {filtered.map(gem => (
-                <GemCard key={gem.gemID} gem={gem} onClick={() => navigate(`/gems/${gem.gemID}`)} />
+                <GemCard
+                  key={gem.gemID}
+                  gem={gem}
+                  onClick={() => navigate(`/gems/${gem.gemID}`)}
+                />
               ))}
             </div>
           )}
@@ -170,42 +183,42 @@ function GemCard({ gem, onClick }) {
 }
 
 const styles = {
-  page:             { minHeight: '100vh', background: '#F9FAFB', fontFamily: 'system-ui, sans-serif' },
-  nav:              { height: '56px', background: 'white', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 10 },
-  navLeft:          { display: 'flex', alignItems: 'center', gap: '10px' },
-  logo:             { width: '32px', height: '32px', background: '#1A9E6E', borderRadius: '6px', color: 'white', fontWeight: '700', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  navBrand:         { fontWeight: '600', fontSize: '15px', color: '#111827' },
-  navLinks:         { display: 'flex', gap: '24px' },
-  navLink:          { fontSize: '14px', color: '#6B7280', cursor: 'pointer' },
-  navLinkActive:    { fontSize: '14px', color: '#1A9E6E', fontWeight: '500', cursor: 'pointer' },
-  layout:           { display: 'flex', maxWidth: '1200px', margin: '0 auto', padding: '24px', gap: '24px' },
-  sidebar:          { width: '220px', flexShrink: 0 },
-  sideSection:      { marginBottom: '24px' },
-  sideLabel:        { fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '.06em', color: '#9CA3AF', marginBottom: '8px' },
-  searchInput:      { width: '100%', height: '38px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', outline: 'none' },
-  categoryList:     { display: 'flex', flexDirection: 'column', gap: '4px' },
-  categoryBtn:      { textAlign: 'left', background: 'none', border: 'none', padding: '6px 10px', borderRadius: '6px', fontSize: '13px', color: '#6B7280', cursor: 'pointer' },
-  categoryBtnActive:{ background: '#E8F5F0', color: '#1A9E6E', fontWeight: '500' },
-  select:           { width: '100%', height: '38px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 10px', fontSize: '13px', background: 'white' },
-  main:             { flex: 1 },
-  mainHeader:       { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' },
-  mainTitle:        { fontSize: '20px', fontWeight: '700', color: '#111827', margin: 0 },
-  mainCount:        { fontSize: '13px', color: '#9CA3AF' },
-  loading:          { textAlign: 'center', padding: '60px', color: '#9CA3AF' },
-  empty:            { textAlign: 'center', padding: '60px', color: '#9CA3AF' },
-  grid:             { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' },
-  card:             { background: 'white', border: '1px solid #E5E7EB', borderRadius: '10px', overflow: 'hidden', cursor: 'pointer', transition: 'box-shadow .15s' },
-  cardImg:          { height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  cardImgPhoto:     { width: '100%', height: '100%', objectFit: 'cover' },
-  cardBody:         { padding: '14px' },
-  cardAuthor:       { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' },
-  avatar:           { width: '26px', height: '26px', borderRadius: '50%', background: '#1A9E6E', color: 'white', fontSize: '11px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  cardAuthorName:   { fontSize: '12px', fontWeight: '500', color: '#374151' },
-  cardTime:         { fontSize: '11px', color: '#9CA3AF', marginLeft: 'auto' },
-  cardTitle:        { fontSize: '15px', fontWeight: '600', color: '#111827', marginBottom: '6px' },
-  cardDesc:         { fontSize: '13px', color: '#6B7280', lineHeight: '1.5', marginBottom: '10px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
-  cardFooter:       { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' },
-  cardLocation:     { fontSize: '11px', color: '#9CA3AF', flex: 1 },
-  tag:              { fontSize: '11px', fontWeight: '500', padding: '2px 8px', borderRadius: '9999px' },
-  saveCount:        { fontSize: '12px', color: '#6B7280' },
+  page:              { minHeight: '100vh', background: '#F9FAFB', fontFamily: 'system-ui, sans-serif' },
+  nav:               { height: '56px', background: 'white', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 10 },
+  navLeft:           { display: 'flex', alignItems: 'center', gap: '10px' },
+  logo:              { width: '32px', height: '32px', background: '#1A9E6E', borderRadius: '6px', color: 'white', fontWeight: '700', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  navBrand:          { fontWeight: '600', fontSize: '15px', color: '#111827' },
+  navLinks:          { display: 'flex', gap: '24px' },
+  navLink:           { fontSize: '14px', color: '#6B7280', cursor: 'pointer' },
+  navLinkActive:     { fontSize: '14px', color: '#1A9E6E', fontWeight: '500', cursor: 'pointer' },
+  layout:            { display: 'flex', maxWidth: '1200px', margin: '0 auto', padding: '24px', gap: '24px' },
+  sidebar:           { width: '220px', flexShrink: 0 },
+  sideSection:       { marginBottom: '24px' },
+  sideLabel:         { fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '.06em', color: '#9CA3AF', marginBottom: '8px' },
+  searchInput:       { width: '100%', height: '38px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', outline: 'none' },
+  categoryList:      { display: 'flex', flexDirection: 'column', gap: '4px' },
+  categoryBtn:       { textAlign: 'left', background: 'none', border: 'none', padding: '6px 10px', borderRadius: '6px', fontSize: '13px', color: '#6B7280', cursor: 'pointer' },
+  categoryBtnActive: { background: '#E8F5F0', color: '#1A9E6E', fontWeight: '500' },
+  select:            { width: '100%', height: '38px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 10px', fontSize: '13px', background: 'white' },
+  main:              { flex: 1 },
+  mainHeader:        { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' },
+  mainTitle:         { fontSize: '20px', fontWeight: '700', color: '#111827', margin: 0 },
+  mainCount:         { fontSize: '13px', color: '#9CA3AF' },
+  loading:           { textAlign: 'center', padding: '60px', color: '#9CA3AF' },
+  empty:             { textAlign: 'center', padding: '60px', color: '#9CA3AF' },
+  grid:              { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' },
+  card:              { background: 'white', border: '1px solid #E5E7EB', borderRadius: '10px', overflow: 'hidden', cursor: 'pointer' },
+  cardImg:           { height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  cardImgPhoto:      { width: '100%', height: '100%', objectFit: 'cover' },
+  cardBody:          { padding: '14px' },
+  cardAuthor:        { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' },
+  avatar:            { width: '26px', height: '26px', borderRadius: '50%', background: '#1A9E6E', color: 'white', fontSize: '11px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  cardAuthorName:    { fontSize: '12px', fontWeight: '500', color: '#374151' },
+  cardTime:          { fontSize: '11px', color: '#9CA3AF', marginLeft: 'auto' },
+  cardTitle:         { fontSize: '15px', fontWeight: '600', color: '#111827', marginBottom: '6px' },
+  cardDesc:          { fontSize: '13px', color: '#6B7280', lineHeight: '1.5', marginBottom: '10px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+  cardFooter:        { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' },
+  cardLocation:      { fontSize: '11px', color: '#9CA3AF', flex: 1 },
+  tag:               { fontSize: '11px', fontWeight: '500', padding: '2px 8px', borderRadius: '9999px' },
+  saveCount:         { fontSize: '12px', color: '#6B7280' },
 };
