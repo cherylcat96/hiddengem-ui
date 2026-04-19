@@ -8,23 +8,29 @@ import Create from './pages/Create';
 import Landing from './pages/Landing';
 import Profile from './pages/Profile';
 import EditGem from './pages/EditGem';
+import VerifyEmail from './pages/VerifyEmail';
+import NotFound from './pages/NotFound';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+      <ErrorBoundary>
         <Routes>
           <Route path="/"              element={<Landing />} />
           <Route path="/signup"        element={<SignUp />} />
           <Route path="/signin"        element={<SignIn />} />
-          <Route path="/verify-email"  element={<div>Verify Email</div>} />
+          <Route path="/verify-email"  element={<VerifyEmail />} />
           <Route path="/discover"      element={<Discover />} />
           <Route path="/gems/:id"      element={<GemDetail />} />
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/create"        element={<Create />} />
           <Route path="/gems/:id/edit" element={<EditGem />} />
+          <Route path="*"              element={<NotFound />} />
 
         </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
     </AuthProvider>
   );
