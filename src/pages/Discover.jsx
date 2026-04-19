@@ -22,6 +22,13 @@ export default function Discover() {
   const [category, setCategory] = useState('');
   const [sort, setSort]         = useState('newest');
   const [search, setSearch]     = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     fetchGems();
@@ -55,68 +62,105 @@ export default function Discover() {
       <nav style={styles.nav}>
         <div style={styles.navLeft}>
           <div style={styles.logo}>HG</div>
-          <span style={styles.navBrand}>HiddenGem</span>
+          {!isMobile && <span style={styles.navBrand}>HiddenGem</span>}
         </div>
-      <div style={styles.navLinks}>
-        <span style={styles.navLinkActive}>Discover</span>
-        <span style={styles.navLink} onClick={() => navigate('/create')}>Create</span>
-        {user ? (
-          <span style={styles.navLink} onClick={() => navigate(`/profile/${user.username}`)}>
-            Profile
-          </span>
-        ) : (
-          <span style={styles.navLink} onClick={() => navigate('/signin')}>Sign In</span>
-        )}
-      </div>
+        <div style={styles.navLinks}>
+          <span style={styles.navLinkActive}>Discover</span>
+          <span style={styles.navLink} onClick={() => navigate('/create')}>Create</span>
+          {user ? (
+            <span style={styles.navLink} onClick={() => navigate(`/profile/${user.username}`)}>
+              Profile
+            </span>
+          ) : (
+            <span style={styles.navLink} onClick={() => navigate('/signin')}>Sign In</span>
+          )}
+        </div>
       </nav>
 
-      <div style={styles.layout}>
-
-        {/* SIDEBAR */}
-        <aside style={styles.sidebar}>
-          <div style={styles.sideSection}>
-            <div style={styles.sideLabel}>Search</div>
-            <input
-              style={styles.searchInput}
-              placeholder="Search gems..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </div>
-
-          <div style={styles.sideSection}>
-            <div style={styles.sideLabel}>Category</div>
-            <div style={styles.categoryList}>
-              <button
-                style={{ ...styles.categoryBtn, ...(category === '' ? styles.categoryBtnActive : {}) }}
-                onClick={() => setCategory('')}
-              >
-                All
-              </button>
-              {CATEGORIES.map(cat => (
-                <button
-                  key={cat}
-                  style={{ ...styles.categoryBtn, ...(category === cat ? styles.categoryBtnActive : {}) }}
-                  onClick={() => setCategory(cat)}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={styles.sideSection}>
-            <div style={styles.sideLabel}>Sort by</div>
-            <select
-              style={styles.select}
-              value={sort}
-              onChange={e => setSort(e.target.value)}
+      {/* MOBILE FILTERS */}
+      {isMobile && (
+        <div style={styles.mobileFilters}>
+          <input
+            style={styles.mobileSearch}
+            placeholder="Search gems..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <div style={styles.mobileCategoryRow}>
+            <button
+              style={{ ...styles.mobileCatBtn, ...(category === '' ? styles.mobileCatBtnActive : {}) }}
+              onClick={() => setCategory('')}
             >
-              <option value="newest">Newest</option>
-              <option value="most_saved">Most Saved</option>
-            </select>
+              All
+            </button>
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                style={{ ...styles.mobileCatBtn, ...(category === cat ? styles.mobileCatBtnActive : {}) }}
+                onClick={() => setCategory(cat)}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
-        </aside>
+          <select
+            style={styles.mobileSelect}
+            value={sort}
+            onChange={e => setSort(e.target.value)}
+          >
+            <option value="newest">Newest</option>
+            <option value="most_saved">Most Saved</option>
+          </select>
+        </div>
+      )}
+
+      <div style={isMobile ? styles.layoutMobile : styles.layout}>
+
+        {/* SIDEBAR — desktop only */}
+        {!isMobile && (
+          <aside style={styles.sidebar}>
+            <div style={styles.sideSection}>
+              <div style={styles.sideLabel}>Search</div>
+              <input
+                style={styles.searchInput}
+                placeholder="Search gems..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <div style={styles.sideSection}>
+              <div style={styles.sideLabel}>Category</div>
+              <div style={styles.categoryList}>
+                <button
+                  style={{ ...styles.categoryBtn, ...(category === '' ? styles.categoryBtnActive : {}) }}
+                  onClick={() => setCategory('')}
+                >
+                  All
+                </button>
+                {CATEGORIES.map(cat => (
+                  <button
+                    key={cat}
+                    style={{ ...styles.categoryBtn, ...(category === cat ? styles.categoryBtnActive : {}) }}
+                    onClick={() => setCategory(cat)}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={styles.sideSection}>
+              <div style={styles.sideLabel}>Sort by</div>
+              <select
+                style={styles.select}
+                value={sort}
+                onChange={e => setSort(e.target.value)}
+              >
+                <option value="newest">Newest</option>
+                <option value="most_saved">Most Saved</option>
+              </select>
+            </div>
+          </aside>
+        )}
 
         {/* MAIN */}
         <main style={styles.main}>
@@ -128,15 +172,15 @@ export default function Discover() {
           </div>
 
           {loading ? (
-          <div style={styles.grid}>
-            {[...Array(6)].map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
+            <div style={styles.grid}>
+              {[...Array(6)].map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
           ) : filtered.length === 0 ? (
             <div style={styles.empty}>No gems found. Try a different filter.</div>
           ) : (
-            <div style={styles.grid}>
+            <div style={isMobile ? styles.gridMobile : styles.grid}>
               {filtered.map(gem => (
                 <GemCard
                   key={gem.gemID}
@@ -147,6 +191,28 @@ export default function Discover() {
             </div>
           )}
         </main>
+      </div>
+    </div>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div style={styles.card}>
+      <div style={skeletonStyles.img} />
+      <div style={{ padding: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <div style={skeletonStyles.avatar} />
+          <div style={{ ...skeletonStyles.line, width: '80px' }} />
+          <div style={{ ...skeletonStyles.line, width: '50px', marginLeft: 'auto' }} />
+        </div>
+        <div style={{ ...skeletonStyles.line, width: '70%', height: '16px', marginBottom: '8px' }} />
+        <div style={{ ...skeletonStyles.line, width: '100%', marginBottom: '6px' }} />
+        <div style={{ ...skeletonStyles.line, width: '85%', marginBottom: '14px' }} />
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ ...skeletonStyles.line, width: '60px' }} />
+          <div style={{ ...skeletonStyles.line, width: '50px', borderRadius: '9999px' }} />
+        </div>
       </div>
     </div>
   );
@@ -186,28 +252,6 @@ function GemCard({ gem, onClick }) {
   );
 }
 
-function SkeletonCard() {
-  return (
-    <div style={styles.card}>
-      <div style={skeletonStyles.img} />
-      <div style={{ padding: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-          <div style={skeletonStyles.avatar} />
-          <div style={{ ...skeletonStyles.line, width: '80px' }} />
-          <div style={{ ...skeletonStyles.line, width: '50px', marginLeft: 'auto' }} />
-        </div>
-        <div style={{ ...skeletonStyles.line, width: '70%', height: '16px', marginBottom: '8px' }} />
-        <div style={{ ...skeletonStyles.line, width: '100%', marginBottom: '6px' }} />
-        <div style={{ ...skeletonStyles.line, width: '85%', marginBottom: '14px' }} />
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <div style={{ ...skeletonStyles.line, width: '60px' }} />
-          <div style={{ ...skeletonStyles.line, width: '50px', borderRadius: '9999px' }} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 const skeletonStyles = {
   img: {
     height: '160px',
@@ -235,14 +279,23 @@ const skeletonStyles = {
 
 const styles = {
   page:              { minHeight: '100vh', background: '#F9FAFB', fontFamily: 'system-ui, sans-serif' },
-  nav:               { height: '56px', background: 'white', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 10 },
+  nav:               { height: '56px', background: 'white', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', position: 'sticky', top: 0, zIndex: 10 },
   navLeft:           { display: 'flex', alignItems: 'center', gap: '10px' },
-  logo:              { width: '32px', height: '32px', background: '#1A9E6E', borderRadius: '6px', color: 'white', fontWeight: '700', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  logo:              { width: '32px', height: '32px', background: '#1A9E6E', borderRadius: '6px', color: 'white', fontWeight: '700', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   navBrand:          { fontWeight: '600', fontSize: '15px', color: '#111827' },
-  navLinks:          { display: 'flex', gap: '24px' },
-  navLink:           { fontSize: '14px', color: '#6B7280', cursor: 'pointer' },
-  navLinkActive:     { fontSize: '14px', color: '#1A9E6E', fontWeight: '500', cursor: 'pointer' },
+  navLinks:          { display: 'flex', gap: '16px' },
+  navLink:           { fontSize: '14px', color: '#6B7280', cursor: 'pointer', whiteSpace: 'nowrap' },
+  navLinkActive:     { fontSize: '14px', color: '#1A9E6E', fontWeight: '500', cursor: 'pointer', whiteSpace: 'nowrap' },
+  // Mobile filters
+  mobileFilters:     { background: 'white', borderBottom: '1px solid #E5E7EB', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' },
+  mobileSearch:      { width: '100%', height: '38px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' },
+  mobileCategoryRow: { display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' },
+  mobileCatBtn:      { flexShrink: 0, background: 'none', border: '1px solid #E5E7EB', padding: '5px 12px', borderRadius: '9999px', fontSize: '12px', color: '#6B7280', cursor: 'pointer', whiteSpace: 'nowrap' },
+  mobileCatBtnActive:{ flexShrink: 0, background: '#E8F5F0', border: '1px solid #1A9E6E', padding: '5px 12px', borderRadius: '9999px', fontSize: '12px', color: '#1A9E6E', fontWeight: '500', cursor: 'pointer', whiteSpace: 'nowrap' },
+  mobileSelect:      { width: '100%', height: '36px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 10px', fontSize: '13px', background: 'white' },
+  // Layouts
   layout:            { display: 'flex', maxWidth: '1200px', margin: '0 auto', padding: '24px', gap: '24px' },
+  layoutMobile:      { padding: '16px' },
   sidebar:           { width: '220px', flexShrink: 0 },
   sideSection:       { marginBottom: '24px' },
   sideLabel:         { fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '.06em', color: '#9CA3AF', marginBottom: '8px' },
@@ -255,9 +308,9 @@ const styles = {
   mainHeader:        { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' },
   mainTitle:         { fontSize: '20px', fontWeight: '700', color: '#111827', margin: 0 },
   mainCount:         { fontSize: '13px', color: '#9CA3AF' },
-  loading:           { textAlign: 'center', padding: '60px', color: '#9CA3AF' },
   empty:             { textAlign: 'center', padding: '60px', color: '#9CA3AF' },
   grid:              { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' },
+  gridMobile:        { display: 'grid', gridTemplateColumns: '1fr', gap: '16px' },
   card:              { background: 'white', border: '1px solid #E5E7EB', borderRadius: '10px', overflow: 'hidden', cursor: 'pointer' },
   cardImg:           { height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   cardImgPhoto:      { width: '100%', height: '100%', objectFit: 'cover' },
