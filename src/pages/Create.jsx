@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { createGem } from '../api/gems';
@@ -9,6 +9,13 @@ const CATEGORIES = ['Nature', 'Food', 'Art', 'Architecture', 'Historic', 'Other'
 export default function Create() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const [form, setForm] = useState({
     name:           '',
@@ -21,15 +28,12 @@ export default function Create() {
     tagInput:       '',
     tags:           [],
   });
-  const [photos, setPhotos]   = useState([]);
-  const [errors, setErrors]   = useState({});
-  const [loading, setLoading] = useState(false);
+  const [photos, setPhotos]       = useState([]);
+  const [errors, setErrors]       = useState({});
+  const [loading, setLoading]     = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  if (!user) {
-    navigate('/signin');
-    return null;
-  }
+  if (!user) { navigate('/signin'); return null; }
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -46,14 +50,11 @@ export default function Create() {
     }
   };
 
-  const removeTag = (tag) => {
-    setForm({ ...form, tags: form.tags.filter(t => t !== tag) });
-  };
+  const removeTag = (tag) => setForm({ ...form, tags: form.tags.filter(t => t !== tag) });
 
   const handlePhoto = async (e) => {
     const file = e.target.files[0];
     if (!file || photos.length >= 3) return;
-
     setUploading(true);
     try {
       const data = new FormData();
@@ -69,9 +70,7 @@ export default function Create() {
     }
   };
 
-  const removePhoto = (index) => {
-    setPhotos(prev => prev.filter((_, i) => i !== index));
-  };
+  const removePhoto = (index) => setPhotos(prev => prev.filter((_, i) => i !== index));
 
   const useMyLocation = () => {
     if (!navigator.geolocation) return;
@@ -101,7 +100,6 @@ export default function Create() {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) return setErrors(errs);
-
     setLoading(true);
     try {
       const res = await createGem({
@@ -131,7 +129,7 @@ export default function Create() {
       <nav style={styles.nav}>
         <div style={styles.navLeft}>
           <div style={styles.logo}>HG</div>
-          <span style={styles.navBrand}>HiddenGem</span>
+          {!isMobile && <span style={styles.navBrand}>HiddenGem</span>}
         </div>
         <div style={styles.navLinks}>
           <span style={styles.navLink} onClick={() => navigate('/discover')}>Discover</span>
@@ -139,12 +137,10 @@ export default function Create() {
         </div>
       </nav>
 
-      <div style={styles.container}>
-        <h1 style={styles.pageTitle}>Share a Hidden Gem</h1>
+      <div style={{ ...styles.container, padding: isMobile ? '16px' : '32px 24px' }}>
+        <h1 style={{ ...styles.pageTitle, fontSize: isMobile ? '20px' : '24px' }}>Share a Hidden Gem</h1>
 
-        {errors.general && (
-          <div style={styles.errorBanner}>{errors.general}</div>
-        )}
+        {errors.general && <div style={styles.errorBanner}>{errors.general}</div>}
 
         <form onSubmit={handleSubmit} style={styles.form}>
 
@@ -217,16 +213,16 @@ export default function Create() {
               placeholder="e.g. Forest Park, St. Louis"
               style={styles.input}
             />
-            <div style={styles.coordRow}>
+            <div style={{ ...styles.coordRow, flexDirection: isMobile ? 'column' : 'row' }}>
               <input
                 name="latitude" value={form.latitude} onChange={handleChange}
                 placeholder="Latitude"
-                style={{ ...styles.input, ...(errors.location ? styles.inputError : {}) }}
+                style={{ ...styles.input, ...(errors.location ? styles.inputError : {}), flex: 1 }}
               />
               <input
                 name="longitude" value={form.longitude} onChange={handleChange}
                 placeholder="Longitude"
-                style={{ ...styles.input, ...(errors.location ? styles.inputError : {}) }}
+                style={{ ...styles.input, ...(errors.location ? styles.inputError : {}), flex: 1 }}
               />
               <button type="button" style={styles.locationBtn} onClick={useMyLocation}>
                 📍 Use my location
@@ -273,11 +269,11 @@ export default function Create() {
           </div>
 
           {/* SUBMIT */}
-          <div style={styles.submitRow}>
-            <button type="button" style={styles.cancelBtn} onClick={() => navigate('/discover')}>
+          <div style={{ ...styles.submitRow, flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+            <button type="button" style={{ ...styles.cancelBtn, width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/discover')}>
               Cancel
             </button>
-            <button type="submit" style={styles.submitBtn} disabled={loading}>
+            <button type="submit" style={{ ...styles.submitBtn, width: isMobile ? '100%' : 'auto' }} disabled={loading}>
               {loading ? 'Publishing...' : 'Publish Hidden Gem'}
             </button>
           </div>
@@ -290,17 +286,17 @@ export default function Create() {
 
 const styles = {
   page:          { minHeight: '100vh', background: '#F9FAFB', fontFamily: 'system-ui, sans-serif' },
-  nav:           { height: '56px', background: 'white', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 10 },
+  nav:           { height: '56px', background: 'white', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', position: 'sticky', top: 0, zIndex: 10 },
   navLeft:       { display: 'flex', alignItems: 'center', gap: '10px' },
-  logo:          { width: '32px', height: '32px', background: '#1A9E6E', borderRadius: '6px', color: 'white', fontWeight: '700', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  logo:          { width: '32px', height: '32px', background: '#1A9E6E', borderRadius: '6px', color: 'white', fontWeight: '700', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   navBrand:      { fontWeight: '600', fontSize: '15px', color: '#111827' },
-  navLinks:      { display: 'flex', gap: '24px' },
-  navLink:       { fontSize: '14px', color: '#6B7280', cursor: 'pointer' },
-  navLinkActive: { fontSize: '14px', color: '#1A9E6E', fontWeight: '500', cursor: 'pointer' },
-  container:     { maxWidth: '680px', margin: '0 auto', padding: '32px 24px' },
-  pageTitle:     { fontSize: '24px', fontWeight: '700', color: '#111827', marginBottom: '24px' },
+  navLinks:      { display: 'flex', gap: '16px' },
+  navLink:       { fontSize: '14px', color: '#6B7280', cursor: 'pointer', whiteSpace: 'nowrap' },
+  navLinkActive: { fontSize: '14px', color: '#1A9E6E', fontWeight: '500', cursor: 'pointer', whiteSpace: 'nowrap' },
+  container:     { maxWidth: '680px', margin: '0 auto' },
+  pageTitle:     { fontWeight: '700', color: '#111827', marginBottom: '24px' },
   errorBanner:   { background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: '#B91C1C', marginBottom: '20px' },
-  form:          { display: 'flex', flexDirection: 'column', gap: '24px' },
+  form:          { display: 'flex', flexDirection: 'column', gap: '16px' },
   section:       { background: 'white', borderRadius: '12px', padding: '20px' },
   sectionTitle:  { fontSize: '14px', fontWeight: '600', color: '#111827', marginBottom: '12px' },
   optional:      { fontWeight: '400', color: '#9CA3AF', fontSize: '12px' },
@@ -311,7 +307,7 @@ const styles = {
   photoUpload:   { width: '80px', height: '80px', border: '2px dashed #E5E7EB', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', color: '#9CA3AF', cursor: 'pointer' },
   field:         { background: 'white', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' },
   label:         { fontSize: '13px', fontWeight: '600', color: '#111827' },
-  input:         { height: '42px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '14px', outline: 'none' },
+  input:         { height: '42px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', width: '100%' },
   inputError:    { borderColor: '#EF4444' },
   textarea:      { border: '1px solid #E5E7EB', borderRadius: '6px', padding: '10px 12px', fontSize: '14px', outline: 'none', resize: 'vertical', fontFamily: 'system-ui, sans-serif' },
   charCount:     { fontSize: '11px', color: '#9CA3AF', textAlign: 'right' },
@@ -321,14 +317,14 @@ const styles = {
   catBtn:        { padding: '10px', border: '1px solid #E5E7EB', borderRadius: '8px', background: 'white', fontSize: '13px', color: '#6B7280', cursor: 'pointer' },
   catBtnActive:  { background: '#E8F5F0', borderColor: '#1A9E6E', color: '#1A9E6E', fontWeight: '500' },
   coordRow:      { display: 'flex', gap: '8px', alignItems: 'center' },
-  locationBtn:   { height: '42px', background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' },
+  locationBtn:   { height: '42px', background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 },
   tagInput:      { display: 'flex', flexWrap: 'wrap', gap: '6px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '8px 10px', minHeight: '42px', alignItems: 'center' },
   tagPill:       { background: '#E8F5F0', color: '#1A9E6E', fontSize: '12px', fontWeight: '500', padding: '3px 8px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '4px' },
   tagRemove:     { background: 'none', border: 'none', color: '#1A9E6E', cursor: 'pointer', fontSize: '14px', padding: 0, lineHeight: 1 },
   tagTextInput:  { border: 'none', outline: 'none', fontSize: '13px', color: '#374151', minWidth: '100px', flex: 1 },
   radioGroup:    { display: 'flex', flexDirection: 'column', gap: '10px' },
   radio:         { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#374151', cursor: 'pointer' },
-  submitRow:     { display: 'flex', gap: '12px', justifyContent: 'flex-end' },
+  submitRow:     { display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingBottom: '32px' },
   cancelBtn:     { height: '44px', background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '0 20px', fontSize: '14px', color: '#374151', cursor: 'pointer' },
   submitBtn:     { height: '44px', background: '#1A9E6E', color: 'white', border: 'none', borderRadius: '8px', padding: '0 24px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' },
 };
