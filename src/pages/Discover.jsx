@@ -128,7 +128,11 @@ export default function Discover() {
           </div>
 
           {loading ? (
-            <div style={styles.loading}>Loading gems...</div>
+          <div style={styles.grid}>
+            {[...Array(6)].map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
           ) : filtered.length === 0 ? (
             <div style={styles.empty}>No gems found. Try a different filter.</div>
           ) : (
@@ -181,6 +185,53 @@ function GemCard({ gem, onClick }) {
     </div>
   );
 }
+
+function SkeletonCard() {
+  return (
+    <div style={styles.card}>
+      <div style={skeletonStyles.img} />
+      <div style={{ padding: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <div style={skeletonStyles.avatar} />
+          <div style={{ ...skeletonStyles.line, width: '80px' }} />
+          <div style={{ ...skeletonStyles.line, width: '50px', marginLeft: 'auto' }} />
+        </div>
+        <div style={{ ...skeletonStyles.line, width: '70%', height: '16px', marginBottom: '8px' }} />
+        <div style={{ ...skeletonStyles.line, width: '100%', marginBottom: '6px' }} />
+        <div style={{ ...skeletonStyles.line, width: '85%', marginBottom: '14px' }} />
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ ...skeletonStyles.line, width: '60px' }} />
+          <div style={{ ...skeletonStyles.line, width: '50px', borderRadius: '9999px' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const skeletonStyles = {
+  img: {
+    height: '160px',
+    background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.5s infinite',
+  },
+  avatar: {
+    width: '26px',
+    height: '26px',
+    borderRadius: '50%',
+    background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.5s infinite',
+    flexShrink: 0,
+  },
+  line: {
+    height: '12px',
+    borderRadius: '4px',
+    background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.5s infinite',
+  },
+};
 
 const styles = {
   page:              { minHeight: '100vh', background: '#F9FAFB', fontFamily: 'system-ui, sans-serif' },
