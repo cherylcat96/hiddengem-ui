@@ -89,15 +89,15 @@ export default function Profile() {
   const statsRow = (
     <div style={styles.statsRow}>
       <div style={styles.stat}>
-        <div style={styles.statNum}>{profile.gem_count}</div>
+        <div style={styles.statNum}>{profile.gem_count ?? 0}</div>
         <div style={styles.statLabel}>Gems</div>
       </div>
       <div style={styles.stat}>
-        <div style={styles.statNum}>{profile.follower_count}</div>
+        <div style={styles.statNum}>{profile.follower_count ?? 0}</div>
         <div style={styles.statLabel}>Followers</div>
       </div>
       <div style={styles.stat}>
-        <div style={styles.statNum}>{profile.following_count}</div>
+        <div style={styles.statNum}>{profile.following_count ?? 0}</div>
         <div style={styles.statLabel}>Following</div>
       </div>
     </div>
@@ -112,8 +112,6 @@ export default function Profile() {
       {followLoading ? '...' : following ? 'Following' : 'Follow'}
     </button>
   );
-
-  console.log('me:', me, 'isOwn:', isOwn, 'profile.is_following:', profile?.is_following);
 
   return (
     <div style={styles.page}>
@@ -256,7 +254,7 @@ function GemCard({ gem, isOwn, onClick, onEdit }) {
       <div style={{ ...styles.cardImg, background: colors.bg, cursor: 'pointer' }} onClick={onClick}>
         {gem.cover_photo
           ? <img src={gem.cover_photo} alt={gem.name} style={styles.cardImgPhoto} />
-          : <span style={{ fontSize: '28px' }}></span>
+          : <span style={{ fontSize: '14px', color: colors.fg, fontWeight: '500' }}>{gem.category}</span>
         }
       </div>
       <div style={styles.cardBody}>
@@ -264,7 +262,7 @@ function GemCard({ gem, isOwn, onClick, onEdit }) {
         <div style={styles.cardDesc}>{gem.description}</div>
         <div style={styles.cardFooter}>
           <span style={{ ...styles.tag, background: colors.bg, color: colors.fg }}>{gem.category}</span>
-          <span style={styles.saveCount}>{gem.save_count}</span>
+          <span style={styles.saveCount}>{gem.save_count} saves</span>
           {isOwn && <button style={styles.editBtn} onClick={onEdit}>Edit</button>}
         </div>
       </div>
