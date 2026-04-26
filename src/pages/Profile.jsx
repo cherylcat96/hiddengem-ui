@@ -17,12 +17,14 @@ export default function Profile() {
   const navigate     = useNavigate();
   const { user: me, signOut } = useAuth();
 
-  const [profile, setProfile] = useState(null);
-  const [gems, setGems]       = useState([]);
-  const [saved, setSaved]     = useState([]);
-  const [tab, setTab]         = useState('gems');
-  const [loading, setLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [profile, setProfile]       = useState(null);
+  const [gems, setGems]             = useState([]);
+  const [saved, setSaved]           = useState([]);
+  const [tab, setTab]               = useState('gems');
+  const [loading, setLoading]       = useState(true);
+  const [following, setFollowing]   = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [isMobile, setIsMobile]     = useState(window.innerWidth < 768);
   const isOwn = me?.username === username;
 
   useEffect(() => {
@@ -41,6 +43,7 @@ export default function Profile() {
     try {
       const res = await client.get(`/users/${username}`);
       setProfile(res.data);
+      setFollowing(res.data.is_following);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -59,12 +62,58 @@ export default function Profile() {
     } catch (err) { console.error(err); }
   };
 
+  const handleFollow = async () => {
+    if (!me) { navigate('/signin'); return; }
+    setFollowLoading(true);
+    try {
+      if (following) {
+        await client.delete(`/users/${username}/follow`);
+        setFollowing(false);
+        setProfile(p => ({ ...p, follower_count: p.follower_count - 1 }));
+      } else {
+        await client.post(`/users/${username}/follow`);
+        setFollowing(true);
+        setProfile(p => ({ ...p, follower_count: p.follower_count + 1 }));
+      }
+    } catch (err) { console.error(err); }
+    finally { setFollowLoading(false); }
+  };
+
   const handleSignOut = () => { signOut(); navigate('/'); };
 
   if (loading)  return <div style={styles.loading}>Loading...</div>;
   if (!profile) return <div style={styles.loading}>User not found.</div>;
 
   const displayGems = tab === 'gems' ? gems : saved;
+
+  const statsRow = (
+    <div style={styles.statsRow}>
+      <div style={styles.stat}>
+        <div style={styles.statNum}>{profile.gem_count}</div>
+        <div style={styles.statLabel}>Gems</div>
+      </div>
+      <div style={styles.stat}>
+        <div style={styles.statNum}>{profile.follower_count}</div>
+        <div style={styles.statLabel}>Followers</div>
+      </div>
+      <div style={styles.stat}>
+        <div style={styles.statNum}>{profile.following_count}</div>
+        <div style={styles.statLabel}>Following</div>
+      </div>
+    </div>
+  );
+
+  const followBtn = !isOwn && me && (
+    <button
+      style={following ? styles.followingBtn : styles.followBtn}
+      onClick={handleFollow}
+      disabled={followLoading}
+    >
+      {followLoading ? '...' : following ? 'Following' : 'Follow'}
+    </button>
+  );
+
+  console.log('me:', me, 'isOwn:', isOwn, 'profile.is_following:', profile?.is_following);
 
   return (
     <div style={styles.page}>
@@ -84,7 +133,7 @@ export default function Profile() {
 
       <div style={{ ...styles.container, padding: isMobile ? '16px' : '32px 24px' }}>
 
-        {/* MOBILE: profile header stacked */}
+        {/* MOBILE */}
         {isMobile ? (
           <div style={styles.mobileProfile}>
             <div style={styles.mobileProfileTop}>
@@ -97,18 +146,14 @@ export default function Profile() {
               <div style={styles.mobileProfileInfo}>
                 <div style={styles.profileName}>{profile.display_name}</div>
                 <div style={styles.profileUsername}>@{profile.username}</div>
-                <div style={styles.statsRow}>
-                  <div style={styles.stat}>
-                    <div style={styles.statNum}>{profile.gem_count}</div>
-                    <div style={styles.statLabel}>Gems</div>
-                  </div>
-                </div>
+                {statsRow}
               </div>
             </div>
             {profile.bio && <p style={styles.profileBio}>{profile.bio}</p>}
             <div style={styles.profileMeta}>
               Member since {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </div>
+            {followBtn}
             {isOwn && (
               <button style={styles.signOutBtn} onClick={handleSignOut}>Sign Out</button>
             )}
@@ -127,15 +172,11 @@ export default function Profile() {
                 <div style={styles.profileName}>{profile.display_name}</div>
                 <div style={styles.profileUsername}>@{profile.username}</div>
                 {profile.bio && <p style={styles.profileBio}>{profile.bio}</p>}
-                <div style={styles.statsRow}>
-                  <div style={styles.stat}>
-                    <div style={styles.statNum}>{profile.gem_count}</div>
-                    <div style={styles.statLabel}>Gems</div>
-                  </div>
-                </div>
+                {statsRow}
                 <div style={styles.profileMeta}>
                   Member since {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </div>
+                {followBtn}
                 {isOwn && (
                   <button style={styles.signOutBtn} onClick={handleSignOut}>Sign Out</button>
                 )}
@@ -154,7 +195,7 @@ export default function Profile() {
           </div>
         )}
 
-        {/* MOBILE gem grid below profile */}
+        {/* MOBILE gem grid */}
         {isMobile && (
           <GemGrid
             tab={tab} setTab={setTab}
@@ -215,7 +256,7 @@ function GemCard({ gem, isOwn, onClick, onEdit }) {
       <div style={{ ...styles.cardImg, background: colors.bg, cursor: 'pointer' }} onClick={onClick}>
         {gem.cover_photo
           ? <img src={gem.cover_photo} alt={gem.name} style={styles.cardImgPhoto} />
-          : <span style={{ fontSize: '28px' }}>📍</span>
+          : <span style={{ fontSize: '28px' }}></span>
         }
       </div>
       <div style={styles.cardBody}>
@@ -223,7 +264,7 @@ function GemCard({ gem, isOwn, onClick, onEdit }) {
         <div style={styles.cardDesc}>{gem.description}</div>
         <div style={styles.cardFooter}>
           <span style={{ ...styles.tag, background: colors.bg, color: colors.fg }}>{gem.category}</span>
-          <span style={styles.saveCount}>🔖 {gem.save_count}</span>
+          <span style={styles.saveCount}>{gem.save_count}</span>
           {isOwn && <button style={styles.editBtn} onClick={onEdit}>Edit</button>}
         </div>
       </div>
@@ -244,7 +285,6 @@ const styles = {
   layout:          { display: 'flex', gap: '28px', alignItems: 'flex-start' },
   sidebar:         { width: '240px', flexShrink: 0 },
   profileCard:     { background: 'white', borderRadius: '12px', padding: '24px', border: '1px solid #E5E7EB', textAlign: 'center' },
-  // Mobile profile
   mobileProfile:   { background: 'white', borderRadius: '12px', padding: '16px', border: '1px solid #E5E7EB', marginBottom: '16px' },
   mobileProfileTop:{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' },
   mobileProfileInfo:{ flex: 1 },
@@ -254,11 +294,13 @@ const styles = {
   profileName:     { fontSize: '18px', fontWeight: '700', color: '#111827', marginBottom: '4px' },
   profileUsername: { fontSize: '13px', color: '#9CA3AF', marginBottom: '8px' },
   profileBio:      { fontSize: '13px', color: '#6B7280', lineHeight: '1.6', marginBottom: '12px' },
-  statsRow:        { display: 'flex', gap: '24px', padding: '12px 0', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6', marginBottom: '12px' },
+  statsRow:        { display: 'flex', gap: '16px', padding: '12px 0', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6', marginBottom: '12px', justifyContent: 'center' },
   stat:            { textAlign: 'center' },
   statNum:         { fontSize: '20px', fontWeight: '700', color: '#111827' },
   statLabel:       { fontSize: '12px', color: '#9CA3AF' },
   profileMeta:     { fontSize: '12px', color: '#9CA3AF', marginBottom: '12px' },
+  followBtn:       { width: '100%', height: '38px', background: '#1A9E6E', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', color: 'white', cursor: 'pointer', marginBottom: '8px' },
+  followingBtn:    { width: '100%', height: '38px', background: 'white', border: '1px solid #1A9E6E', borderRadius: '8px', fontSize: '13px', fontWeight: '600', color: '#1A9E6E', cursor: 'pointer', marginBottom: '8px' },
   signOutBtn:      { width: '100%', height: '38px', background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px', color: '#6B7280', cursor: 'pointer' },
   main:            { flex: 1 },
   tabs:            { display: 'flex', gap: '4px', borderBottom: '1px solid #E5E7EB', marginBottom: '24px' },

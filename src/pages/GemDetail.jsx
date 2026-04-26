@@ -157,7 +157,7 @@ export default function GemDetail() {
                   )}
                 </>
               ) : (
-                <span style={{ fontSize: '48px' }}>📍</span>
+                <span style={{ fontSize: '48px' }}></span>
               )}
             </div>
 
@@ -177,20 +177,20 @@ export default function GemDetail() {
                   <div style={styles.authorMeta}>@{gem.username} · {new Date(gem.created_at).toLocaleDateString()}</div>
                 </div>
               </div>
-              {gem.location_label && <div style={styles.location}>📍 {gem.location_label}</div>}
+              {gem.location_label && <div style={styles.location}>{gem.location_label}</div>}
               <p style={styles.description}>{gem.description}</p>
               <div style={{ ...styles.actionBar, flexWrap: 'wrap' }}>
                 <button style={{ ...styles.actionBtn, ...(saved ? styles.actionBtnActive : {}) }} onClick={handleSave}>
-                  {saved ? '🔖 Saved' : '🔖 Save'} · {saveCount}
+                  {saved ? 'Saved' : 'Save'} · {saveCount}
                 </button>
-                <button style={styles.actionBtn}>💬 {comments.length}</button>
+                <button style={styles.actionBtn}> Comment · {comments.length}</button>
                 <button style={styles.actionBtn} onClick={() => { navigator.clipboard.writeText(window.location.href); alert('Link copied!'); }}>
-                  🔗 Share
+                  Share
                 </button>
                 {user && user.username === gem.username && (
                   <button style={{ ...styles.actionBtn, color: '#1A9E6E', borderColor: '#1A9E6E' }}
                     onClick={() => navigate(`/gems/${id}/edit`)}>
-                    ✏️ Edit
+                    Edit
                   </button>
                 )}
               </div>

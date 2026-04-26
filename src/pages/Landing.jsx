@@ -55,7 +55,7 @@ export default function Landing() {
               <div style={styles.mockBody}>
                 <div style={styles.mockTag}>Nature</div>
                 <div style={styles.mockTitle}>Secret Waterfall Trail</div>
-                <div style={styles.mockMeta}>📍 Forest Park · 🔖 24 saves</div>
+                <div style={styles.mockMeta}>Forest Park · 24 saves</div>
               </div>
             </div>
             <div style={{ ...styles.mockCard, ...styles.mockCardOffset }}>
@@ -63,7 +63,7 @@ export default function Landing() {
               <div style={styles.mockBody}>
                 <div style={{ ...styles.mockTag, background: '#FEF3C7', color: '#92400E' }}>Food</div>
                 <div style={styles.mockTitle}>Secret Speakeasy Café</div>
-                <div style={styles.mockMeta}>📍 Maplewood · 🔖 31 saves</div>
+                <div style={styles.mockMeta}>Maplewood · 31 saves</div>
               </div>
             </div>
           </div>

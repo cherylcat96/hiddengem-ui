@@ -225,7 +225,7 @@ function GemCard({ gem, onClick }) {
       <div style={{ ...styles.cardImg, background: colors.bg }}>
         {gem.cover_photo
           ? <img src={gem.cover_photo} alt={gem.name} style={styles.cardImgPhoto} />
-          : <span style={{ fontSize: '32px' }}>📍</span>
+          : <span style={{ fontSize: '32px' }}></span>
         }
       </div>
       <div style={styles.cardBody}>
@@ -240,12 +240,12 @@ function GemCard({ gem, onClick }) {
         <div style={styles.cardDesc}>{gem.description}</div>
         <div style={styles.cardFooter}>
           {gem.location_label && (
-            <span style={styles.cardLocation}>📍 {gem.location_label}</span>
+            <span style={styles.cardLocation}>{gem.location_label}</span>
           )}
           <span style={{ ...styles.tag, background: colors.bg, color: colors.fg }}>
             {gem.category}
           </span>
-          <span style={styles.saveCount}>🔖 {gem.save_count}</span>
+          <span style={styles.saveCount}>{gem.save_count}</span>
         </div>
       </div>
     </div>
