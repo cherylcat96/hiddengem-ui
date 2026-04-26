@@ -60,7 +60,7 @@ export default function Discover() {
 
       {/* NAV */}
       <nav style={styles.nav}>
-        <div style={styles.navLeft}>
+        <div style={{ ...styles.navLeft, cursor: 'pointer' }} onClick={() => navigate('/')}>
           <div style={styles.logo}>HG</div>
           {!isMobile && <span style={styles.navBrand}>HiddenGem</span>}
         </div>
@@ -186,6 +186,7 @@ export default function Discover() {
                   key={gem.gemID}
                   gem={gem}
                   onClick={() => navigate(`/gems/${gem.gemID}`)}
+                  navigate={navigate}
                 />
               ))}
             </div>
@@ -218,20 +219,25 @@ function SkeletonCard() {
   );
 }
 
-function GemCard({ gem, onClick }) {
+function GemCard({ gem, onClick, navigate }) {
   const colors = TAG_COLORS[gem.category] || TAG_COLORS.Other;
   return (
     <div style={styles.card} onClick={onClick}>
       <div style={{ ...styles.cardImg, background: colors.bg }}>
         {gem.cover_photo
           ? <img src={gem.cover_photo} alt={gem.name} style={styles.cardImgPhoto} />
-          : <span style={{ fontSize: '32px' }}></span>
+          : <span style={{ fontSize: '13px', color: colors.fg, fontWeight: '500' }}>{gem.category}</span>
         }
       </div>
       <div style={styles.cardBody}>
         <div style={styles.cardAuthor}>
           <div style={styles.avatar}>{gem.display_name?.[0] || '?'}</div>
-          <span style={styles.cardAuthorName}>@{gem.username}</span>
+          <span
+            style={{ ...styles.cardAuthorName, cursor: 'pointer' }}
+            onClick={(e) => { e.stopPropagation(); navigate(`/profile/${gem.username}`); }}
+          >
+            @{gem.username}
+          </span>
           <span style={styles.cardTime}>
             {new Date(gem.created_at).toLocaleDateString()}
           </span>
@@ -245,7 +251,7 @@ function GemCard({ gem, onClick }) {
           <span style={{ ...styles.tag, background: colors.bg, color: colors.fg }}>
             {gem.category}
           </span>
-          <span style={styles.saveCount}>{gem.save_count}</span>
+          <span style={styles.saveCount}>{gem.save_count} saves</span>
         </div>
       </div>
     </div>
@@ -286,14 +292,12 @@ const styles = {
   navLinks:          { display: 'flex', gap: '16px' },
   navLink:           { fontSize: '14px', color: '#6B7280', cursor: 'pointer', whiteSpace: 'nowrap' },
   navLinkActive:     { fontSize: '14px', color: '#1A9E6E', fontWeight: '500', cursor: 'pointer', whiteSpace: 'nowrap' },
-  // Mobile filters
   mobileFilters:     { background: 'white', borderBottom: '1px solid #E5E7EB', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' },
   mobileSearch:      { width: '100%', height: '38px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' },
   mobileCategoryRow: { display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' },
   mobileCatBtn:      { flexShrink: 0, background: 'none', border: '1px solid #E5E7EB', padding: '5px 12px', borderRadius: '9999px', fontSize: '12px', color: '#6B7280', cursor: 'pointer', whiteSpace: 'nowrap' },
   mobileCatBtnActive:{ flexShrink: 0, background: '#E8F5F0', border: '1px solid #1A9E6E', padding: '5px 12px', borderRadius: '9999px', fontSize: '12px', color: '#1A9E6E', fontWeight: '500', cursor: 'pointer', whiteSpace: 'nowrap' },
   mobileSelect:      { width: '100%', height: '36px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 10px', fontSize: '13px', background: 'white' },
-  // Layouts
   layout:            { display: 'flex', maxWidth: '1200px', margin: '0 auto', padding: '24px', gap: '24px' },
   layoutMobile:      { padding: '16px' },
   sidebar:           { width: '220px', flexShrink: 0 },
@@ -317,7 +321,7 @@ const styles = {
   cardBody:          { padding: '14px' },
   cardAuthor:        { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' },
   avatar:            { width: '26px', height: '26px', borderRadius: '50%', background: '#1A9E6E', color: 'white', fontSize: '11px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  cardAuthorName:    { fontSize: '12px', fontWeight: '500', color: '#374151' },
+  cardAuthorName:    { fontSize: '12px', fontWeight: '500', color: '#1A9E6E' },
   cardTime:          { fontSize: '11px', color: '#9CA3AF', marginLeft: 'auto' },
   cardTitle:         { fontSize: '15px', fontWeight: '600', color: '#111827', marginBottom: '6px' },
   cardDesc:          { fontSize: '13px', color: '#6B7280', lineHeight: '1.5', marginBottom: '10px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },

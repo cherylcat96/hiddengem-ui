@@ -116,9 +116,9 @@ export default function GemDetail() {
 
       {/* NAV */}
       <nav style={styles.nav}>
-        <div style={styles.navLeft}>
-          <div style={styles.logo}>HG</div>
-          {!isMobile && <span style={styles.navBrand}>HiddenGem</span>}
+        <div style={styles.navLeft} onClick={() => navigate('/')} role="button">
+          <div style={{ ...styles.logo, cursor: 'pointer' }}>HG</div>
+          {!isMobile && <span style={{ ...styles.navBrand, cursor: 'pointer' }}>HiddenGem</span>}
         </div>
         <div style={styles.navLinks}>
           <span style={styles.navLink} onClick={() => navigate('/discover')}>Discover</span>
@@ -170,7 +170,7 @@ export default function GemDetail() {
                 ))}
               </div>
               <h1 style={{ ...styles.title, fontSize: isMobile ? '20px' : '24px' }}>{gem.name}</h1>
-              <div style={styles.authorRow}>
+              <div style={{ ...styles.authorRow, cursor: 'pointer' }} onClick={() => navigate(`/profile/${gem.username}`)}>
                 <div style={styles.avatar}>{gem.display_name?.[0] || '?'}</div>
                 <div>
                   <div style={styles.authorName}>{gem.display_name}</div>
