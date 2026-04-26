@@ -118,9 +118,9 @@ export default function Profile() {
 
       {/* NAV */}
       <nav style={styles.nav}>
-        <div style={styles.navLeft} onClick={() => navigate('/')} role="button">
-          <div style={{ ...styles.logo, cursor: 'pointer' }}>HG</div>
-          {!isMobile && <span style={{ ...styles.navBrand, cursor: 'pointer' }}>HiddenGem</span>}
+        <div style={{ ...styles.navLeft, cursor: 'pointer' }} onClick={() => navigate(user ? '/discover' : '/')}>
+          <div style={styles.logo}>HG</div>
+          {!isMobile && <span style={styles.navBrand}>HiddenGem</span>}
         </div>
         <div style={styles.navLinks}>
           <span style={styles.navLink} onClick={() => navigate('/discover')}>Discover</span>

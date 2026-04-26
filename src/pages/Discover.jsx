@@ -60,7 +60,7 @@ export default function Discover() {
 
       {/* NAV */}
       <nav style={styles.nav}>
-        <div style={{ ...styles.navLeft, cursor: 'pointer' }} onClick={() => navigate('/')}>
+        <div style={{ ...styles.navLeft, cursor: 'pointer' }} onClick={() => navigate(user ? '/discover' : '/')}>
           <div style={styles.logo}>HG</div>
           {!isMobile && <span style={styles.navBrand}>HiddenGem</span>}
         </div>
