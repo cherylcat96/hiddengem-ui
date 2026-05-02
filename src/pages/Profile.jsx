@@ -15,16 +15,17 @@ const TAG_COLORS = {
 export default function Profile() {
   const { username } = useParams();
   const navigate     = useNavigate();
-  const { user: me, signOut } = useAuth();
+  const { user: me, signIn } = useAuth();
 
-  const [profile, setProfile]       = useState(null);
-  const [gems, setGems]             = useState([]);
-  const [saved, setSaved]           = useState([]);
-  const [tab, setTab]               = useState('gems');
-  const [loading, setLoading]       = useState(true);
-  const [following, setFollowing]   = useState(false);
+  const [profile, setProfile]           = useState(null);
+  const [gems, setGems]                 = useState([]);
+  const [saved, setSaved]               = useState([]);
+  const [tab, setTab]                   = useState('gems');
+  const [loading, setLoading]           = useState(true);
+  const [following, setFollowing]       = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
-  const [isMobile, setIsMobile]     = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile]         = useState(window.innerWidth < 768);
+  const [showEditModal, setShowEditModal] = useState(false);
   const isOwn = me?.username === username;
 
   useEffect(() => {
@@ -79,7 +80,15 @@ export default function Profile() {
     finally { setFollowLoading(false); }
   };
 
-  const handleSignOut = () => { signOut(); navigate('/'); };
+  const handleProfileUpdated = (updatedProfile) => {
+    setProfile(p => ({ ...p, ...updatedProfile }));
+    setShowEditModal(false);
+  };
+
+  const handleSignOut = () => {
+    const { signOut } = require('../context/AuthContext');
+    navigate('/');
+  };
 
   if (loading)  return <div style={styles.loading}>Loading...</div>;
   if (!profile) return <div style={styles.loading}>User not found.</div>;
@@ -113,8 +122,23 @@ export default function Profile() {
     </button>
   );
 
+  const editProfileBtn = isOwn && (
+    <button style={styles.editProfileBtn} onClick={() => setShowEditModal(true)}>
+      Edit Profile
+    </button>
+  );
+
   return (
     <div style={styles.page}>
+
+      {/* EDIT PROFILE MODAL */}
+      {showEditModal && (
+        <EditProfileModal
+          profile={profile}
+          onClose={() => setShowEditModal(false)}
+          onSaved={handleProfileUpdated}
+        />
+      )}
 
       {/* NAV */}
       <nav style={styles.nav}>
@@ -130,7 +154,7 @@ export default function Profile() {
               {!isOwn && (
                 <span style={styles.navLink} onClick={() => navigate(`/profile/${me.username}`)}>My Profile</span>
               )}
-              <span style={styles.navLink} onClick={handleSignOut}>Sign Out</span>
+              <span style={styles.navLink} onClick={() => { localStorage.removeItem('token'); window.location.href = '/'; }}>Sign Out</span>
             </>
           ) : (
             <span style={styles.navLink} onClick={() => navigate('/signin')}>Sign In</span>
@@ -161,13 +185,15 @@ export default function Profile() {
               Member since {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </div>
             {followBtn}
+            {editProfileBtn}
             {isOwn && (
-              <button style={styles.signOutBtn} onClick={handleSignOut}>Sign Out</button>
+              <button style={styles.signOutBtn} onClick={() => { localStorage.removeItem('token'); window.location.href = '/'; }}>
+                Sign Out
+              </button>
             )}
           </div>
         ) : (
           <div style={styles.layout}>
-            {/* DESKTOP sidebar */}
             <aside style={styles.sidebar}>
               <div style={styles.profileCard}>
                 <div style={styles.avatar}>
@@ -184,13 +210,15 @@ export default function Profile() {
                   Member since {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </div>
                 {followBtn}
+                {editProfileBtn}
                 {isOwn && (
-                  <button style={styles.signOutBtn} onClick={handleSignOut}>Sign Out</button>
+                  <button style={styles.signOutBtn} onClick={() => { localStorage.removeItem('token'); window.location.href = '/'; }}>
+                    Sign Out
+                  </button>
                 )}
               </div>
             </aside>
 
-            {/* DESKTOP main */}
             <main style={styles.main}>
               <GemGrid
                 tab={tab} setTab={setTab}
@@ -202,7 +230,6 @@ export default function Profile() {
           </div>
         )}
 
-        {/* MOBILE gem grid */}
         {isMobile && (
           <GemGrid
             tab={tab} setTab={setTab}
@@ -211,6 +238,116 @@ export default function Profile() {
             isOwn={isOwn} navigate={navigate}
           />
         )}
+      </div>
+    </div>
+  );
+}
+
+function EditProfileModal({ profile, onClose, onSaved }) {
+  const [form, setForm]       = useState({
+    display_name: profile.display_name || '',
+    bio:          profile.bio || '',
+    avatar_url:   profile.avatar_url || '',
+  });
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState('');
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const data = new FormData();
+      data.append('file', file);
+      const res = await client.post('/uploads/photo', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setForm(f => ({ ...f, avatar_url: res.data.url }));
+    } catch (err) {
+      setError('Photo upload failed. Try again.');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleSave = async () => {
+    if (!form.display_name.trim()) return setError('Display name is required.');
+    setSaving(true);
+    try {
+      const res = await client.patch('/users/me', {
+        display_name: form.display_name.trim(),
+        bio:          form.bio.trim(),
+        avatar_url:   form.avatar_url || null,
+      });
+      onSaved(res.data);
+    } catch (err) {
+      setError('Something went wrong. Try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modal} onClick={e => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <h2 style={styles.modalTitle}>Edit Profile</h2>
+          <button style={styles.modalClose} onClick={onClose}>×</button>
+        </div>
+
+        {error && <p style={styles.modalError}>{error}</p>}
+
+        {/* AVATAR */}
+        <div style={styles.modalAvatarRow}>
+          <div style={styles.modalAvatar}>
+            {form.avatar_url
+              ? <img src={form.avatar_url} alt="" style={styles.avatarImg} />
+              : <span style={styles.avatarInitial}>{form.display_name?.[0] || '?'}</span>
+            }
+          </div>
+          <label style={styles.avatarUploadBtn}>
+            {uploading ? 'Uploading...' : 'Change Photo'}
+            <input type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'none' }} />
+          </label>
+        </div>
+
+        {/* DISPLAY NAME */}
+        <div style={styles.modalField}>
+          <label style={styles.modalLabel}>Display Name *</label>
+          <input
+            name="display_name"
+            value={form.display_name}
+            onChange={handleChange}
+            style={styles.modalInput}
+            placeholder="Your display name"
+          />
+        </div>
+
+        {/* BIO */}
+        <div style={styles.modalField}>
+          <label style={styles.modalLabel}>Bio</label>
+          <textarea
+            name="bio"
+            value={form.bio}
+            onChange={handleChange}
+            style={styles.modalTextarea}
+            placeholder="Tell the community about yourself..."
+            rows={3}
+          />
+        </div>
+
+        <div style={styles.modalActions}>
+          <button style={styles.modalCancel} onClick={onClose}>Cancel</button>
+          <button style={styles.modalSave} onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -280,51 +417,69 @@ function GemCard({ gem, isOwn, onClick, onEdit }) {
 }
 
 const styles = {
-  page:            { minHeight: '100vh', background: '#F9FAFB', fontFamily: 'system-ui, sans-serif' },
-  loading:         { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#9CA3AF' },
-  nav:             { height: '56px', background: 'white', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', position: 'sticky', top: 0, zIndex: 10 },
-  navLeft:         { display: 'flex', alignItems: 'center', gap: '10px' },
-  logo:            { width: '32px', height: '32px', background: '#1A9E6E', borderRadius: '6px', color: 'white', fontWeight: '700', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  navBrand:        { fontWeight: '600', fontSize: '15px', color: '#111827' },
-  navLinks:        { display: 'flex', gap: '16px' },
-  navLink:         { fontSize: '14px', color: '#6B7280', cursor: 'pointer', whiteSpace: 'nowrap' },
-  container:       { maxWidth: '1100px', margin: '0 auto' },
-  layout:          { display: 'flex', gap: '28px', alignItems: 'flex-start' },
-  sidebar:         { width: '240px', flexShrink: 0 },
-  profileCard:     { background: 'white', borderRadius: '12px', padding: '24px', border: '1px solid #E5E7EB', textAlign: 'center' },
-  mobileProfile:   { background: 'white', borderRadius: '12px', padding: '16px', border: '1px solid #E5E7EB', marginBottom: '16px' },
-  mobileProfileTop:{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' },
+  page:             { minHeight: '100vh', background: '#F9FAFB', fontFamily: 'system-ui, sans-serif' },
+  loading:          { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#9CA3AF' },
+  nav:              { height: '56px', background: 'white', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', position: 'sticky', top: 0, zIndex: 10 },
+  navLeft:          { display: 'flex', alignItems: 'center', gap: '10px' },
+  logo:             { width: '32px', height: '32px', background: '#1A9E6E', borderRadius: '6px', color: 'white', fontWeight: '700', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  navBrand:         { fontWeight: '600', fontSize: '15px', color: '#111827' },
+  navLinks:         { display: 'flex', gap: '16px' },
+  navLink:          { fontSize: '14px', color: '#6B7280', cursor: 'pointer', whiteSpace: 'nowrap' },
+  container:        { maxWidth: '1100px', margin: '0 auto' },
+  layout:           { display: 'flex', gap: '28px', alignItems: 'flex-start' },
+  sidebar:          { width: '240px', flexShrink: 0 },
+  profileCard:      { background: 'white', borderRadius: '12px', padding: '24px', border: '1px solid #E5E7EB', textAlign: 'center' },
+  mobileProfile:    { background: 'white', borderRadius: '12px', padding: '16px', border: '1px solid #E5E7EB', marginBottom: '16px' },
+  mobileProfileTop: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' },
   mobileProfileInfo:{ flex: 1 },
-  avatar:          { width: '72px', height: '72px', borderRadius: '50%', background: '#1A9E6E', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', overflow: 'hidden', flexShrink: 0 },
-  avatarImg:       { width: '100%', height: '100%', objectFit: 'cover' },
-  avatarInitial:   { fontSize: '28px', fontWeight: '700', color: 'white' },
-  profileName:     { fontSize: '18px', fontWeight: '700', color: '#111827', marginBottom: '4px' },
-  profileUsername: { fontSize: '13px', color: '#9CA3AF', marginBottom: '8px' },
-  profileBio:      { fontSize: '13px', color: '#6B7280', lineHeight: '1.6', marginBottom: '12px' },
-  statsRow:        { display: 'flex', gap: '16px', padding: '12px 0', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6', marginBottom: '12px', justifyContent: 'center' },
-  stat:            { textAlign: 'center' },
-  statNum:         { fontSize: '20px', fontWeight: '700', color: '#111827' },
-  statLabel:       { fontSize: '12px', color: '#9CA3AF' },
-  profileMeta:     { fontSize: '12px', color: '#9CA3AF', marginBottom: '12px' },
-  followBtn:       { width: '100%', height: '38px', background: '#1A9E6E', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', color: 'white', cursor: 'pointer', marginBottom: '8px' },
-  followingBtn:    { width: '100%', height: '38px', background: 'white', border: '1px solid #1A9E6E', borderRadius: '8px', fontSize: '13px', fontWeight: '600', color: '#1A9E6E', cursor: 'pointer', marginBottom: '8px' },
-  signOutBtn:      { width: '100%', height: '38px', background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px', color: '#6B7280', cursor: 'pointer' },
-  main:            { flex: 1 },
-  tabs:            { display: 'flex', gap: '4px', borderBottom: '1px solid #E5E7EB', marginBottom: '24px' },
-  tab:             { padding: '10px 16px', background: 'none', border: 'none', borderBottom: '2px solid transparent', fontSize: '14px', color: '#6B7280', cursor: 'pointer', marginBottom: '-1px' },
-  tabActive:       { color: '#1A9E6E', borderBottomColor: '#1A9E6E', fontWeight: '500' },
-  empty:           { textAlign: 'center', padding: '60px 20px', color: '#9CA3AF', fontSize: '14px' },
-  createBtn:       { marginTop: '12px', height: '40px', background: '#1A9E6E', color: 'white', border: 'none', borderRadius: '8px', padding: '0 20px', fontSize: '14px', cursor: 'pointer' },
-  link:            { color: '#1A9E6E', cursor: 'pointer' },
-  grid:            { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' },
-  card:            { background: 'white', border: '1px solid #E5E7EB', borderRadius: '10px', overflow: 'hidden' },
-  cardImg:         { height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  cardImgPhoto:    { width: '100%', height: '100%', objectFit: 'cover' },
-  cardBody:        { padding: '12px' },
-  cardTitle:       { fontSize: '14px', fontWeight: '600', color: '#111827', marginBottom: '4px', cursor: 'pointer' },
-  cardDesc:        { fontSize: '12px', color: '#6B7280', lineHeight: '1.5', marginBottom: '8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
-  cardFooter:      { display: 'flex', alignItems: 'center', gap: '8px' },
-  tag:             { fontSize: '11px', fontWeight: '500', padding: '2px 8px', borderRadius: '9999px' },
-  saveCount:       { fontSize: '12px', color: '#6B7280', marginLeft: 'auto' },
-  editBtn:         { fontSize: '12px', color: '#1A9E6E', background: 'none', border: '1px solid #1A9E6E', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' },
+  avatar:           { width: '72px', height: '72px', borderRadius: '50%', background: '#1A9E6E', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', overflow: 'hidden', flexShrink: 0 },
+  avatarImg:        { width: '100%', height: '100%', objectFit: 'cover' },
+  avatarInitial:    { fontSize: '28px', fontWeight: '700', color: 'white' },
+  profileName:      { fontSize: '18px', fontWeight: '700', color: '#111827', marginBottom: '4px' },
+  profileUsername:  { fontSize: '13px', color: '#9CA3AF', marginBottom: '8px' },
+  profileBio:       { fontSize: '13px', color: '#6B7280', lineHeight: '1.6', marginBottom: '12px' },
+  statsRow:         { display: 'flex', gap: '16px', padding: '12px 0', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6', marginBottom: '12px', justifyContent: 'center' },
+  stat:             { textAlign: 'center' },
+  statNum:          { fontSize: '20px', fontWeight: '700', color: '#111827' },
+  statLabel:        { fontSize: '12px', color: '#9CA3AF' },
+  profileMeta:      { fontSize: '12px', color: '#9CA3AF', marginBottom: '12px' },
+  followBtn:        { width: '100%', height: '38px', background: '#1A9E6E', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', color: 'white', cursor: 'pointer', marginBottom: '8px' },
+  followingBtn:     { width: '100%', height: '38px', background: 'white', border: '1px solid #1A9E6E', borderRadius: '8px', fontSize: '13px', fontWeight: '600', color: '#1A9E6E', cursor: 'pointer', marginBottom: '8px' },
+  editProfileBtn:   { width: '100%', height: '38px', background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px', color: '#374151', cursor: 'pointer', marginBottom: '8px' },
+  signOutBtn:       { width: '100%', height: '38px', background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px', color: '#6B7280', cursor: 'pointer' },
+  main:             { flex: 1 },
+  tabs:             { display: 'flex', gap: '4px', borderBottom: '1px solid #E5E7EB', marginBottom: '24px' },
+  tab:              { padding: '10px 16px', background: 'none', border: 'none', borderBottom: '2px solid transparent', fontSize: '14px', color: '#6B7280', cursor: 'pointer', marginBottom: '-1px' },
+  tabActive:        { color: '#1A9E6E', borderBottomColor: '#1A9E6E', fontWeight: '500' },
+  empty:            { textAlign: 'center', padding: '60px 20px', color: '#9CA3AF', fontSize: '14px' },
+  createBtn:        { marginTop: '12px', height: '40px', background: '#1A9E6E', color: 'white', border: 'none', borderRadius: '8px', padding: '0 20px', fontSize: '14px', cursor: 'pointer' },
+  link:             { color: '#1A9E6E', cursor: 'pointer' },
+  grid:             { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' },
+  card:             { background: 'white', border: '1px solid #E5E7EB', borderRadius: '10px', overflow: 'hidden' },
+  cardImg:          { height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  cardImgPhoto:     { width: '100%', height: '100%', objectFit: 'cover' },
+  cardBody:         { padding: '12px' },
+  cardTitle:        { fontSize: '14px', fontWeight: '600', color: '#111827', marginBottom: '4px', cursor: 'pointer' },
+  cardDesc:         { fontSize: '12px', color: '#6B7280', lineHeight: '1.5', marginBottom: '8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+  cardFooter:       { display: 'flex', alignItems: 'center', gap: '8px' },
+  tag:              { fontSize: '11px', fontWeight: '500', padding: '2px 8px', borderRadius: '9999px' },
+  saveCount:        { fontSize: '12px', color: '#6B7280', marginLeft: 'auto' },
+  editBtn:          { fontSize: '12px', color: '#1A9E6E', background: 'none', border: '1px solid #1A9E6E', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' },
+  // Modal
+  modalOverlay:     { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '16px' },
+  modal:            { background: 'white', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '460px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' },
+  modalHeader:      { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
+  modalTitle:       { fontSize: '18px', fontWeight: '700', color: '#111827', margin: 0 },
+  modalClose:       { background: 'none', border: 'none', fontSize: '22px', color: '#9CA3AF', cursor: 'pointer', lineHeight: 1 },
+  modalError:       { background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '6px', padding: '10px 14px', fontSize: '13px', color: '#B91C1C', marginBottom: '16px' },
+  modalAvatarRow:   { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' },
+  modalAvatar:      { width: '64px', height: '64px', borderRadius: '50%', background: '#1A9E6E', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 },
+  avatarUploadBtn:  { height: '36px', background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '0 16px', fontSize: '13px', color: '#374151', cursor: 'pointer', display: 'flex', alignItems: 'center' },
+  modalField:       { display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' },
+  modalLabel:       { fontSize: '13px', fontWeight: '600', color: '#111827' },
+  modalInput:       { height: '42px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '14px', outline: 'none' },
+  modalTextarea:    { border: '1px solid #E5E7EB', borderRadius: '6px', padding: '10px 12px', fontSize: '14px', outline: 'none', resize: 'vertical', fontFamily: 'system-ui, sans-serif' },
+  modalActions:     { display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' },
+  modalCancel:      { height: '40px', background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '0 20px', fontSize: '14px', color: '#374151', cursor: 'pointer' },
+  modalSave:        { height: '40px', background: '#1A9E6E', color: 'white', border: 'none', borderRadius: '8px', padding: '0 20px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' },
 };
