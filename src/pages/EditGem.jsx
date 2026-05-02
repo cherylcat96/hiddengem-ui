@@ -16,6 +16,8 @@ export default function EditGem() {
     location_label: '', privacy: 'public',
     tagInput: '', tags: [],
   });
+  const [photos, setPhotos]     = useState([]); // { url, isExisting }
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading]   = useState(true);
   const [saving, setSaving]     = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -31,7 +33,6 @@ export default function EditGem() {
       const res = await getGem(id);
       const gem = res.data;
 
-      // Redirect if not owner
       if (user && gem.username !== user.username) {
         navigate(`/gems/${id}`);
         return;
@@ -50,6 +51,10 @@ export default function EditGem() {
         view_count: gem.view_count || 0,
         save_count: gem.save_count || 0,
       });
+      // Load existing photos
+      if (gem.photos && gem.photos.length > 0) {
+        setPhotos(gem.photos.map(p => ({ url: p.url, isExisting: true })));
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -76,6 +81,29 @@ export default function EditGem() {
     setForm({ ...form, tags: form.tags.filter(t => t !== tag) });
   };
 
+  const handlePhoto = async (e) => {
+    const file = e.target.files[0];
+    if (!file || photos.length >= 3) return;
+    setUploading(true);
+    try {
+      const data = new FormData();
+      data.append('file', file);
+      const res = await client.post('/uploads/photo', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setPhotos(prev => [...prev, { url: res.data.url, isExisting: false }]);
+    } catch (err) {
+      setErrors({ ...errors, photo: 'Upload failed. Try again.' });
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const removePhoto = (index) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim())        return setErrors({ name: 'Name is required.' });
@@ -91,6 +119,7 @@ export default function EditGem() {
         location_label: form.location_label.trim(),
         privacy:        form.privacy,
         tags:           form.tags,
+        photos:         photos.map(p => ({ url: p.url })),
       });
       navigate(`/gems/${id}`);
     } catch (err) {
@@ -121,7 +150,7 @@ export default function EditGem() {
 
       {/* NAV */}
       <nav style={styles.nav}>
-        <div style={styles.navLeft}>
+        <div style={{ ...styles.navLeft, cursor: 'pointer' }} onClick={() => navigate(user ? '/discover' : '/')}>
           <div style={styles.logo}>HG</div>
           <span style={styles.navBrand}>HiddenGem</span>
         </div>
@@ -142,6 +171,27 @@ export default function EditGem() {
           {/* FORM */}
           <form onSubmit={handleSave} style={styles.form}>
             {errors.general && <div style={styles.errorBanner}>{errors.general}</div>}
+
+            {/* PHOTOS */}
+            <div style={styles.field}>
+              <label style={styles.label}>Photos <span style={styles.optional}>(up to 3)</span></label>
+              <div style={styles.photoRow}>
+                {photos.map((p, i) => (
+                  <div key={i} style={styles.photoThumb}>
+                    <img src={p.url} alt="" style={styles.thumbImg} />
+                    <button type="button" style={styles.removePhoto} onClick={() => removePhoto(i)}>×</button>
+                  </div>
+                ))}
+                {photos.length < 3 && (
+                  <label style={styles.photoUpload}>
+                    {uploading ? '⏳' : '+'}
+                    <input type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
+                  </label>
+                )}
+              </div>
+              {errors.photo && <p style={styles.error}>{errors.photo}</p>}
+              <p style={styles.hint}>Click × to remove a photo. Click + to add a new one.</p>
+            </div>
 
             {/* NAME */}
             <div style={styles.field}>
@@ -230,12 +280,7 @@ export default function EditGem() {
 
             {/* ACTIONS */}
             <div style={styles.actions}>
-              <button
-                type="button"
-                style={styles.deleteBtn}
-                onClick={handleDelete}
-                disabled={deleting}
-              >
+              <button type="button" style={styles.deleteBtn} onClick={handleDelete} disabled={deleting}>
                 {deleting ? 'Deleting...' : 'Delete Post'}
               </button>
               <div style={styles.rightActions}>
@@ -294,9 +339,15 @@ const styles = {
   textarea:     { border: '1px solid #E5E7EB', borderRadius: '6px', padding: '10px 12px', fontSize: '14px', outline: 'none', resize: 'vertical', fontFamily: 'system-ui, sans-serif' },
   charCount:    { fontSize: '11px', color: '#9CA3AF', textAlign: 'right' },
   error:        { fontSize: '12px', color: '#EF4444', margin: 0 },
+  hint:         { fontSize: '12px', color: '#9CA3AF', margin: 0 },
   categoryGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' },
   catBtn:       { padding: '10px', border: '1px solid #E5E7EB', borderRadius: '8px', background: 'white', fontSize: '13px', color: '#6B7280', cursor: 'pointer' },
   catBtnActive: { background: '#E8F5F0', borderColor: '#1A9E6E', color: '#1A9E6E', fontWeight: '500' },
+  photoRow:     { display: 'flex', gap: '12px', flexWrap: 'wrap' },
+  photoThumb:   { width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', position: 'relative' },
+  thumbImg:     { width: '100%', height: '100%', objectFit: 'cover' },
+  removePhoto:  { position: 'absolute', top: '2px', right: '2px', background: 'rgba(0,0,0,.5)', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  photoUpload:  { width: '80px', height: '80px', border: '2px dashed #E5E7EB', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', color: '#9CA3AF', cursor: 'pointer' },
   tagInput:     { display: 'flex', flexWrap: 'wrap', gap: '6px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '8px 10px', minHeight: '42px', alignItems: 'center' },
   tagPill:      { background: '#E8F5F0', color: '#1A9E6E', fontSize: '12px', fontWeight: '500', padding: '3px 8px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '4px' },
   tagRemove:    { background: 'none', border: 'none', color: '#1A9E6E', cursor: 'pointer', fontSize: '14px', padding: 0, lineHeight: 1 },
