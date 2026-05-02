@@ -17,6 +17,10 @@ export default function Create() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (!user) navigate('/signin');
+  }, [user, navigate]);
+
   const [form, setForm] = useState({
     name:           '',
     description:    '',
@@ -33,7 +37,7 @@ export default function Create() {
   const [loading, setLoading]     = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  if (!user) { navigate('/signin'); return null; }
+  if (!user) return null;
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -128,7 +132,7 @@ export default function Create() {
       {/* NAV */}
       <nav style={styles.nav}>
         <div style={styles.navLeft}>
-          <div style={styles.logo}>HG</div>
+          <div style={styles.logo} onClick={() => navigate('/discover')} role="button" style={{ ...styles.logo, cursor: 'pointer' }}>HG</div>
           {!isMobile && <span style={styles.navBrand}>HiddenGem</span>}
         </div>
         <div style={styles.navLinks}>
@@ -225,7 +229,7 @@ export default function Create() {
                 style={{ ...styles.input, ...(errors.location ? styles.inputError : {}), flex: 1 }}
               />
               <button type="button" style={styles.locationBtn} onClick={useMyLocation}>
-                📍 Use my location
+                Use my location
               </button>
             </div>
             {errors.location && <p style={styles.error}>{errors.location}</p>}
