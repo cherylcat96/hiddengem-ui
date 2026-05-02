@@ -15,17 +15,18 @@ const TAG_COLORS = {
 export default function Profile() {
   const { username } = useParams();
   const navigate     = useNavigate();
-  const { user: me, signIn } = useAuth();
+  const { user: me } = useAuth();
 
-  const [profile, setProfile]           = useState(null);
-  const [gems, setGems]                 = useState([]);
-  const [saved, setSaved]               = useState([]);
-  const [tab, setTab]                   = useState('gems');
-  const [loading, setLoading]           = useState(true);
-  const [following, setFollowing]       = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
-  const [isMobile, setIsMobile]         = useState(window.innerWidth < 768);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [profile, setProfile]               = useState(null);
+  const [gems, setGems]                     = useState([]);
+  const [saved, setSaved]                   = useState([]);
+  const [tab, setTab]                       = useState('gems');
+  const [loading, setLoading]               = useState(true);
+  const [following, setFollowing]           = useState(false);
+  const [followLoading, setFollowLoading]   = useState(false);
+  const [isMobile, setIsMobile]             = useState(window.innerWidth < 768);
+  const [showEditModal, setShowEditModal]   = useState(false);
+  const [followModal, setFollowModal]       = useState(null); // 'followers' | 'following' | null
   const isOwn = me?.username === username;
 
   useEffect(() => {
@@ -85,11 +86,6 @@ export default function Profile() {
     setShowEditModal(false);
   };
 
-  const handleSignOut = () => {
-    const { signOut } = require('../context/AuthContext');
-    navigate('/');
-  };
-
   if (loading)  return <div style={styles.loading}>Loading...</div>;
   if (!profile) return <div style={styles.loading}>User not found.</div>;
 
@@ -101,13 +97,19 @@ export default function Profile() {
         <div style={styles.statNum}>{profile.gem_count ?? 0}</div>
         <div style={styles.statLabel}>Gems</div>
       </div>
-      <div style={styles.stat}>
+      <div
+        style={{ ...styles.stat, cursor: 'pointer' }}
+        onClick={() => setFollowModal('followers')}
+      >
         <div style={styles.statNum}>{profile.follower_count ?? 0}</div>
-        <div style={styles.statLabel}>Followers</div>
+        <div style={{ ...styles.statLabel, color: '#1A9E6E' }}>Followers</div>
       </div>
-      <div style={styles.stat}>
+      <div
+        style={{ ...styles.stat, cursor: 'pointer' }}
+        onClick={() => setFollowModal('following')}
+      >
         <div style={styles.statNum}>{profile.following_count ?? 0}</div>
-        <div style={styles.statLabel}>Following</div>
+        <div style={{ ...styles.statLabel, color: '#1A9E6E' }}>Following</div>
       </div>
     </div>
   );
@@ -137,6 +139,16 @@ export default function Profile() {
           profile={profile}
           onClose={() => setShowEditModal(false)}
           onSaved={handleProfileUpdated}
+        />
+      )}
+
+      {/* FOLLOWERS / FOLLOWING MODAL */}
+      {followModal && (
+        <FollowListModal
+          username={username}
+          type={followModal}
+          onClose={() => setFollowModal(null)}
+          onNavigate={(u) => { setFollowModal(null); navigate(`/profile/${u}`); }}
         />
       )}
 
@@ -243,8 +255,63 @@ export default function Profile() {
   );
 }
 
+function FollowListModal({ username, type, onClose, onNavigate }) {
+  const [users, setUsers]   = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const res = await client.get(`/users/${username}/${type}`);
+        setUsers(res.data.users);
+      } catch (err) { console.error(err); }
+      finally { setLoading(false); }
+    };
+    fetch();
+  }, [username, type]);
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modal} onClick={e => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <h2 style={styles.modalTitle}>{type === 'followers' ? 'Followers' : 'Following'}</h2>
+          <button style={styles.modalClose} onClick={onClose}>×</button>
+        </div>
+        {loading ? (
+          <p style={{ color: '#9CA3AF', textAlign: 'center', padding: '24px 0' }}>Loading...</p>
+        ) : users.length === 0 ? (
+          <p style={{ color: '#9CA3AF', textAlign: 'center', padding: '24px 0' }}>
+            {type === 'followers' ? 'No followers yet.' : 'Not following anyone yet.'}
+          </p>
+        ) : (
+          <div style={styles.userList}>
+            {users.map(u => (
+              <div
+                key={u.userID}
+                style={styles.userRow}
+                onClick={() => onNavigate(u.username)}
+              >
+                <div style={styles.userAvatar}>
+                  {u.avatar_url
+                    ? <img src={u.avatar_url} alt="" style={styles.avatarImg} />
+                    : <span style={styles.userAvatarInitial}>{u.display_name?.[0] || '?'}</span>
+                  }
+                </div>
+                <div>
+                  <div style={styles.userName}>{u.display_name}</div>
+                  <div style={styles.userUsername}>@{u.username}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function EditProfileModal({ profile, onClose, onSaved }) {
-  const [form, setForm]       = useState({
+  const [form, setForm]         = useState({
     display_name: profile.display_name || '',
     bio:          profile.bio || '',
     avatar_url:   profile.avatar_url || '',
@@ -253,9 +320,7 @@ function EditProfileModal({ profile, onClose, onSaved }) {
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
@@ -300,10 +365,7 @@ function EditProfileModal({ profile, onClose, onSaved }) {
           <h2 style={styles.modalTitle}>Edit Profile</h2>
           <button style={styles.modalClose} onClick={onClose}>×</button>
         </div>
-
         {error && <p style={styles.modalError}>{error}</p>}
-
-        {/* AVATAR */}
         <div style={styles.modalAvatarRow}>
           <div style={styles.modalAvatar}>
             {form.avatar_url
@@ -316,32 +378,23 @@ function EditProfileModal({ profile, onClose, onSaved }) {
             <input type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'none' }} />
           </label>
         </div>
-
-        {/* DISPLAY NAME */}
         <div style={styles.modalField}>
           <label style={styles.modalLabel}>Display Name *</label>
           <input
-            name="display_name"
-            value={form.display_name}
-            onChange={handleChange}
-            style={styles.modalInput}
+            name="display_name" value={form.display_name}
+            onChange={handleChange} style={styles.modalInput}
             placeholder="Your display name"
           />
         </div>
-
-        {/* BIO */}
         <div style={styles.modalField}>
           <label style={styles.modalLabel}>Bio</label>
           <textarea
-            name="bio"
-            value={form.bio}
-            onChange={handleChange}
-            style={styles.modalTextarea}
+            name="bio" value={form.bio}
+            onChange={handleChange} style={styles.modalTextarea}
             placeholder="Tell the community about yourself..."
             rows={3}
           />
         </div>
-
         <div style={styles.modalActions}>
           <button style={styles.modalCancel} onClick={onClose}>Cancel</button>
           <button style={styles.modalSave} onClick={handleSave} disabled={saving}>
@@ -366,7 +419,6 @@ function GemGrid({ tab, setTab, gems, saved, displayGems, isOwn, navigate }) {
           </button>
         )}
       </div>
-
       {displayGems.length === 0 ? (
         <div style={styles.empty}>
           {tab === 'gems'
@@ -465,9 +517,9 @@ const styles = {
   tag:              { fontSize: '11px', fontWeight: '500', padding: '2px 8px', borderRadius: '9999px' },
   saveCount:        { fontSize: '12px', color: '#6B7280', marginLeft: 'auto' },
   editBtn:          { fontSize: '12px', color: '#1A9E6E', background: 'none', border: '1px solid #1A9E6E', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' },
-  // Modal
+  // Modals
   modalOverlay:     { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '16px' },
-  modal:            { background: 'white', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '460px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' },
+  modal:            { background: 'white', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '460px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', maxHeight: '80vh', overflowY: 'auto' },
   modalHeader:      { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
   modalTitle:       { fontSize: '18px', fontWeight: '700', color: '#111827', margin: 0 },
   modalClose:       { background: 'none', border: 'none', fontSize: '22px', color: '#9CA3AF', cursor: 'pointer', lineHeight: 1 },
@@ -475,6 +527,7 @@ const styles = {
   modalAvatarRow:   { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' },
   modalAvatar:      { width: '64px', height: '64px', borderRadius: '50%', background: '#1A9E6E', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 },
   avatarUploadBtn:  { height: '36px', background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '0 16px', fontSize: '13px', color: '#374151', cursor: 'pointer', display: 'flex', alignItems: 'center' },
+  avatarInitial:    { fontSize: '20px', fontWeight: '700', color: 'white' },
   modalField:       { display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' },
   modalLabel:       { fontSize: '13px', fontWeight: '600', color: '#111827' },
   modalInput:       { height: '42px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '14px', outline: 'none' },
@@ -482,4 +535,11 @@ const styles = {
   modalActions:     { display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' },
   modalCancel:      { height: '40px', background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '0 20px', fontSize: '14px', color: '#374151', cursor: 'pointer' },
   modalSave:        { height: '40px', background: '#1A9E6E', color: 'white', border: 'none', borderRadius: '8px', padding: '0 20px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' },
+  // Follow list
+  userList:         { display: 'flex', flexDirection: 'column', gap: '4px' },
+  userRow:          { display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', borderRadius: '8px', cursor: 'pointer', transition: 'background 0.1s' },
+  userAvatar:       { width: '40px', height: '40px', borderRadius: '50%', background: '#1A9E6E', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 },
+  userAvatarInitial:{ fontSize: '16px', fontWeight: '700', color: 'white' },
+  userName:         { fontSize: '14px', fontWeight: '500', color: '#111827' },
+  userUsername:     { fontSize: '12px', color: '#9CA3AF' },
 };
