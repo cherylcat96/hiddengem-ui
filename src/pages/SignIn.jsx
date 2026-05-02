@@ -29,7 +29,11 @@ export default function SignIn() {
       navigate('/discover');
     } catch (err) {
       const apiErr = err.response?.data?.error;
-      setErrors({ general: apiErr?.message || 'Something went wrong.' });
+      if (apiErr?.code === 'EMAIL_NOT_VERIFIED') {
+        setErrors({ general: apiErr.message, unverified: true });
+      } else {
+        setErrors({ general: apiErr?.message || 'Something went wrong.' });
+      }
     } finally {
       setLoading(false);
     }
@@ -42,7 +46,14 @@ export default function SignIn() {
         <h1 style={styles.title}>Welcome back</h1>
         <p style={styles.subtitle}>Sign in to your HiddenGem account</p>
 
-        {errors.general && <p style={styles.errorBanner}>{errors.general}</p>}
+        {errors.general && (
+          <p style={styles.errorBanner}>
+            {errors.general}
+            {errors.unverified && (
+              <span> <Link to="/verify-email" style={{ color: '#B91C1C', fontWeight: '600' }}>Resend verification email?</Link></span>
+            )}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.field}>

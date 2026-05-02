@@ -93,12 +93,12 @@ export default function Landing() {
         <h2 style={styles.sectionTitle}>Explore by category</h2>
         <div style={{ ...styles.catGrid, gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)' }}>
           {[
-            { label: 'Nature',       emoji: '🌿', bg: '#D1FAE5', fg: '#065F46' },
-            { label: 'Food',         emoji: '☕', bg: '#FEF3C7', fg: '#92400E' },
-            { label: 'Art',          emoji: '🎨', bg: '#DBEAFE', fg: '#1E40AF' },
-            { label: 'Architecture', emoji: '🏛️', bg: '#DBEAFE', fg: '#1E40AF' },
-            { label: 'Historic',     emoji: '🏺', bg: '#EDE9FE', fg: '#5B21B6' },
-            { label: 'Other',        emoji: '✨', bg: '#F3F4F6', fg: '#374151' },
+            { label: 'Nature',       bg: '#D1FAE5', fg: '#065F46' },
+            { label: 'Food',         bg: '#FEF3C7', fg: '#92400E' },
+            { label: 'Art',          bg: '#DBEAFE', fg: '#1E40AF' },
+            { label: 'Architecture', bg: '#DBEAFE', fg: '#1E40AF' },
+            { label: 'Historic',     bg: '#EDE9FE', fg: '#5B21B6' },
+            { label: 'Other',        bg: '#F3F4F6', fg: '#374151' },
           ].map(cat => (
             <div
               key={cat.label}

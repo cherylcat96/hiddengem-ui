@@ -51,11 +51,8 @@ export default function VerifyEmail() {
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📧</div>
         <h2 style={{ marginBottom: '0.5rem' }}>Check your email!</h2>
         <p style={{ color: '#666', marginBottom: '2rem', maxWidth: '400px' }}>
-          We sent a verification link to your email address. Click the link to activate your account.
+          We sent a verification link to your email address. Click the link to activate your account. The link expires in 24 hours.
         </p>
-        <Link to="/signin" style={{ color: '#2d6a4f', textDecoration: 'underline' }}>
-          Already verified? Sign in
-        </Link>
       </div>
     );
   }
