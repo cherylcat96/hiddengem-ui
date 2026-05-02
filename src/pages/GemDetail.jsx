@@ -98,6 +98,9 @@ export default function GemDetail() {
     finally { setPosting(false); }
   };
 
+  const prevPhoto = () => setPhotoIndex(i => (i - 1 + gem.photos.length) % gem.photos.length);
+  const nextPhoto = () => setPhotoIndex(i => (i + 1) % gem.photos.length);
+
   if (loading) return <div style={styles.loading}>Loading...</div>;
   if (!gem)    return <div style={styles.loading}>Gem not found.</div>;
 
@@ -134,7 +137,7 @@ export default function GemDetail() {
       <div style={{ ...styles.container, padding: isMobile ? '16px' : '24px' }}>
 
         <button style={styles.back} onClick={() => navigate('/discover')}>
-          ← Back to Discover
+          Back to Discover
         </button>
 
         <div style={{ ...styles.layout, flexDirection: isMobile ? 'column' : 'row' }}>
@@ -142,18 +145,22 @@ export default function GemDetail() {
           {/* LEFT — main content */}
           <div style={styles.main}>
 
-            {/* PHOTO */}
+            {/* PHOTO CAROUSEL */}
             <div style={{ ...styles.photo, background: colors.bg, height: isMobile ? '240px' : '360px' }}>
               {gem.photos && gem.photos.length > 0 ? (
                 <>
                   <img src={gem.photos[photoIndex].url} alt={gem.name} style={styles.photoImg} />
                   {gem.photos.length > 1 && (
-                    <div style={styles.photoDots}>
-                      {gem.photos.map((_, i) => (
-                        <div key={i} onClick={() => setPhotoIndex(i)}
-                          style={{ ...styles.dot, ...(i === photoIndex ? styles.dotActive : {}) }} />
-                      ))}
-                    </div>
+                    <>
+                      <button style={{ ...styles.carouselArrow, left: '12px' }} onClick={prevPhoto}>&#8249;</button>
+                      <button style={{ ...styles.carouselArrow, right: '12px' }} onClick={nextPhoto}>&#8250;</button>
+                      <div style={styles.photoDots}>
+                        {gem.photos.map((_, i) => (
+                          <div key={i} onClick={() => setPhotoIndex(i)}
+                            style={{ ...styles.dot, ...(i === photoIndex ? styles.dotActive : {}) }} />
+                        ))}
+                      </div>
+                    </>
                   )}
                 </>
               ) : (
@@ -183,7 +190,7 @@ export default function GemDetail() {
                 <button style={{ ...styles.actionBtn, ...(saved ? styles.actionBtnActive : {}) }} onClick={handleSave}>
                   {saved ? 'Saved' : 'Save'} · {saveCount}
                 </button>
-                <button style={styles.actionBtn}> Comment · {comments.length}</button>
+                <button style={styles.actionBtn}>Comment · {comments.length}</button>
                 <button style={styles.actionBtn} onClick={() => { navigator.clipboard.writeText(window.location.href); alert('Link copied!'); }}>
                   Share
                 </button>
@@ -283,6 +290,7 @@ const styles = {
   main:            { flex: 1, minWidth: 0 },
   photo:           { width: '100%', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', marginBottom: '16px' },
   photoImg:        { width: '100%', height: '100%', objectFit: 'cover' },
+  carouselArrow:   { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.4)', color: 'white', border: 'none', borderRadius: '50%', width: '36px', height: '36px', fontSize: '22px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, lineHeight: 1 },
   photoDots:       { position: 'absolute', bottom: '12px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '6px' },
   dot:             { width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(255,255,255,.5)', cursor: 'pointer' },
   dotActive:       { background: 'white' },
