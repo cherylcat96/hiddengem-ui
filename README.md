@@ -56,8 +56,14 @@ Visit https://hiddengem-ui.vercel.app and click **Get Started Free** to register
 git clone https://github.com/cherylcat96/hiddengem-ui
 cd hiddengem-ui
 npm install
-cp .env.example .env   # add your environment variables
+cp .env.example .env   # add environment variables
 npm run dev            # runs on http://localhost:5173
 ```
 
 ### Environment Variables
+
+---
+
+## Related
+
+- API Repository: https://github.com/cherylcat96/hiddengem-api
