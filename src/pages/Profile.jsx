@@ -118,14 +118,23 @@ export default function Profile() {
 
       {/* NAV */}
       <nav style={styles.nav}>
-        <div style={{ ...styles.navLeft, cursor: 'pointer' }} onClick={() => navigate(user ? '/discover' : '/')}>
+        <div style={{ ...styles.navLeft, cursor: 'pointer' }} onClick={() => navigate(me ? '/discover' : '/')}>
           <div style={styles.logo}>HG</div>
           {!isMobile && <span style={styles.navBrand}>HiddenGem</span>}
         </div>
         <div style={styles.navLinks}>
           <span style={styles.navLink} onClick={() => navigate('/discover')}>Discover</span>
           <span style={styles.navLink} onClick={() => navigate('/create')}>Create</span>
-          {me && <span style={styles.navLink} onClick={handleSignOut}>Sign Out</span>}
+          {me ? (
+            <>
+              {!isOwn && (
+                <span style={styles.navLink} onClick={() => navigate(`/profile/${me.username}`)}>My Profile</span>
+              )}
+              <span style={styles.navLink} onClick={handleSignOut}>Sign Out</span>
+            </>
+          ) : (
+            <span style={styles.navLink} onClick={() => navigate('/signin')}>Sign In</span>
+          )}
         </div>
       </nav>
 
